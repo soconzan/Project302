@@ -1,0 +1,16 @@
+<!--<div th:if="${products.}"></div>-->
+<div class="product-list">
+    <div th:each="product : ${products}" class="product-item">
+        <a th:href="@{/products/{id}(id=${product.pdId})}" th:onclick="recordClick(${product.pdId})">
+            <div class="product-thumbnail">
+                <img th:src="${product.fileId}" alt="Product Image">
+                <div class="product-heart"><i class="fa-regular fa-heart"></i></div>
+            </div>
+            <div class="product-info">
+                <p class="product-title" th:text="${product.pdName}"></p>
+                <p class="product-price" th:text="${product.pdPrice} + '원'"></p>
+                <p class="product-date" th:text="${product.formattedPullUpDate}"></p>
+            </div>
+        </a>
+    </div>
+</div>

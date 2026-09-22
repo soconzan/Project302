@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(title, content, upperScript, lowerScript)">
+<head>
+    <meta charset="UTF-8">
+    <title th:replace="${title}">PROJECT302</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://kit.fontawesome.com/e0ab7cee60.js" crossorigin="anonymous"></script>
+    <script type="text/javascript"
+            src="//dapi.kakao.com/v2/maps/sdk.js?appkey=4fde2b37795eb370a877d4b9e6093c5e&libraries=services"></script>
+    <th:block sec:authorize="isAuthenticated()">
+        <script src="/js/websocket-connect.js"></script>
+    </th:block>
+
+    <style>
+        img {
+            width: 100px;
+        }
+    </style>
+
+    <link rel="stylesheet" href="/css/main.css">
+
+
+    <th:block th:replace="${upperScript}"></th:block>
+</head>
+<body>
+
+
+<!-- Header Start -->
+<header>
+    <div class="nav container">
+        <!-- home 링크 연결 -->
+        <a th:href="@{/}" class="logo ft-logo">302<span class="ft-logo c-yellow">.</span></a>
+        <div class="category-list">
+            <!-- 중고거래 링크 연결 -->
+            <a th:href="@{/products}" class="category-link">중고거래</a>
+            <!-- 공동구매 링크 연결 -->
+            <a th:href="@{/groups}" class="category-link">공동구매</a>
+        </div>
+        <div class="side-category-list">
+            <button class="nav-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+            <!-- 로그인 정보 없을 때 -->
+            <th:block sec:authorize="isAnonymous()">
+                <!-- 로그인 -->
+                <a th:href="@{/signin}" class="nav-user">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                </a>
+            </th:block>
+            <!-- 로그인 정보 있을 때 -->
+            <th:block sec:authorize="isAuthenticated()">
+                <!-- 마이페이지 -->
+                <a th:href="@{/mypage}" class="nav-user">
+                    <i class="fa-solid fa-user"></i>
+                </a>
+                <!-- 로그아웃 -->
+                <a th:href="@{/users/signout}" class="nav-user">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            </th:block>
+        </div>
+    </div>
+    <div class="hide search container">
+        <div class="search-form">
+            <!-- 검색 컨트롤러 연결 -->
+            <form th:action="@{/products/search}" method="get" id="searchForm">
+                <input type="text" placeholder="검색어를 입력하세요" id="searchKeyword" name="keyword"
+                       class="search-form-input-text">
+                <button type="submit" form="searchForm" class="search-form-submit">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </form>
+        </div>
+        <!-- 사용자 값 받아와야 하는 부분 -->
+        <!--
+                <div class="keyword-list">
+                    <a href="#" class="keyword-item">빤쮸토끼</a>
+                    <a href="#" class="keyword-item">계란</a>
+                    <a href="#" class="add-keyword">
+                        <i class="fa-solid fa-plus"></i>
+                    </a>
+                </div>
+                -->
+
+    </div>
+</header>
+<!-- Header End -->
+
+
+<!-- Content Start -->
+<div th:replace="${content}"></div>
+<!-- Content End -->
+
+
+<!-- Footer Start -->
+
+<!-- Footer End -->
+
+
+<!-- Side Nav Start -->
+<th:block sec:authorize="isAuthenticated()">
+    <aside>
+        <div class="aside-top">
+        </div>
+
+
+        <div class="aside-bottom">
+            <button id="chat-btn">
+                <a th:href="@{/chats}"><i class="fa-solid fa-message"></i></a>
+                <div id="aside-badge" class="hide"></div>
+            </button>
+            <!--        <a th:href="@{/chats}" id="chat-btn"></a>-->
+            <button id="new-btn">
+                <i class="fa-solid fa-plus"></i>
+                <!-- <i class="fa-solid fa-pen"></i> -->
+                <!-- <i class="fa-regular fa-pen-to-square"></i> -->
+                <div class="new-btn-list hide">
+                    <a href="/products/create" id="new-used">중고거래</a>
+                    <a href="/groups/save" id="new-group">공동구매</a>
+                </div>
+            </button>
+            <button id="top-btn">
+                <i class="fa-solid fa-chevron-up"></i>
+            </button>
+        </div>
+    </aside>
+</th:block>
+<!-- Side Nav End -->
+
+<script src="/js/main.js"></script>
+<th:block th:replace="${lowerScript}"></th:block>
+</body>
+</html>

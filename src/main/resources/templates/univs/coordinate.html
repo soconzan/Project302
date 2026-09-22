@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>대학 위도경도 반환</title>
+</head>
+<body>
+
+<div id="univs">
+    <span>univ_id,gubun,univ_name,univ_addr,univ_post,univ_latitude,univ_longitude</span><br>
+</div>
+
+
+<!--<div id="map" style="width:500px; height:300px;"></div>-->
+<script type="text/javascript"
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=4fde2b37795eb370a877d4b9e6093c5e&libraries=services"></script>
+
+<!-- univs -->
+<script th:inline="javascript">
+
+    var univsElement = document.getElementById('univs');
+
+    /*<![CDATA[*/
+    var univs = /*[[${univs}]]*/ [];
+    /*]]>*/
+
+    univs.forEach(function (univ) {
+        // console.log(univ.univName);
+
+        // 주소-좌표 변환 객체를 생성합니다
+        var geocoder = new kakao.maps.services.Geocoder();
+        var univ_addr = univ.univAddr;
+
+        // 주소로 좌표를 검색합니다
+        geocoder.addressSearch(univ_addr, function (result, status) {
+
+            // 정상적으로 검색이 완료됐으면
+            if (status === kakao.maps.services.Status.OK) {
+
+                console.log(univ.univName, result[0].y, result[0].x);
+
+                // 대학,0000001,강릉원주대학교,"강원도 강릉시 죽헌길 7 (지변동, 강릉원주대학교) ",25457
+                var univRecord = document.createElement('span');
+                var univId = univ.univId.toString();
+                var paddedUnivId = univId.padStart(8, '0');
+                univRecord.textContent = paddedUnivId + ',' + univ.gubun + ',' + univ.univName + ',"' + univ.univAddr + '",' + univ.univPost + ',' + result[0].y + ',' + result[0].x;
+                univsElement.appendChild(univRecord);
+                univsElement.appendChild(document.createElement('br'));
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!-- view start -->
+<div id="schedule-form">
+    <p th:if="${product.scheduleDate == null}" class="schedule-form-title">일정 등록하기</p>
+    <p th:if="${product.scheduleDate != null}" class="schedule-form-title">일정 변경하기</p>
+    <form id="scheduleForm" method="post">
+        <!-- hidden -->
+        <input type="hidden" name="pdId" th:value="${product.pdId}">
+        <input type="hidden" id="latitude" name="latitude" th:value="${product.latitude}">
+        <input type="hidden" id="longitude" name="longitude" th:value="${product.longitude}">
+
+
+        <!-- 날짜, 시간, 장소 -->
+        <div class="schedule-form-item form-date">
+            <label for="scheduleDate">날짜</label>
+
+            <input type="datetime-local" name="scheduleDate" id="scheduleDate" step="60"
+                   th:value="${product.scheduleDate}"
+                   th:onchange="setMinValue()">
+        </div>
+
+        <div class="schedule-form-item">
+            <label for="detailAddr">장소</label>
+            <div class="schedule-form-inputs">
+                <div id="map"></div>
+                <input type="text" name="detailAddr" id="detailAddr"
+                       th:if="${product.detailAddr != null}"
+                       th:value="${product.detailAddr}"
+                       required>
+                <input type="text" name="detailAddr" id="detailAddr"
+                       th:if="${product.detailAddr == null}"
+                       placeholder="예) ㅇㅇ대 정문 앞"
+                       required>
+            </div>
+        </div>
+
+        <div class="modal-buttons">
+            <input type="submit" id="modal-submit" class="modal-btn" value="등록">
+            <button type="button" id="modal-close" class="modal-btn">취소</button>
+        </div>
+    </form>
+</div>
+
+
+<!-- script start -->
+<script>
+    console.log("하이요");
+
+    var latitude = [[${product.latitude}]];
+    var longitude = [[${product.longitude}]];
+
+    console.log(latitude, longitude);
+
+    var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+        mapOption = {
+            center: new kakao.maps.LatLng(latitude, longitude), // 지도의 중심좌표
+            level: 3 // 지도의 확대 레벨
+        };
+
+    var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+
+    // 지도를 클릭한 위치에 표출할 마커입니다
+    var marker = new kakao.maps.Marker({
+        // 지도 중심좌표에 마커를 생성합니다
+        position: map.getCenter()
+    });
+
+    // 지도에 마커를 표시합니다
+    marker.setMap(map);
+
+    // 지도에 클릭 이벤트를 등록합니다
+    // 지도를 클릭하면 마지막 파라미터로 넘어온 함수를 호출합니다
+    kakao.maps.event.addListener(map, 'click', function (mouseEvent) {
+
+        // 클릭한 위도, 경도 정보를 가져옵니다
+        var latlng = mouseEvent.latLng;
+
+        // 마커 위치를 클릭한 위치로 옮깁니다
+        marker.setPosition(latlng);
+
+        // input 요소 선택
+        var inputLat = document.getElementById("latitude");
+        inputLat.value = latlng.getLat();
+        var inputLng = document.getElementById("longitude");
+        inputLng.value = latlng.getLng();
+
+        console.log("lat : " + inputLat.value + ", lng : " + inputLng.value);
+
+    });
+
+    {
+        // 현재 날짜 이후로 마감일 설정
+        const clos = document.getElementById('scheduleDate');
+        const date = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, -5);
+
+        if (clos.value < date) {
+            clos.value = date;
+            clos.setAttribute("min", date);
+        }
+
+        function setMinValue() {
+            if (clos.value < date) {
+                alert("현재 시간보다 이전의 날짜는 설정할 수 없습니다.");
+                clos.value = date;
+            }
+        }
+
+    }
+
+    // 창 닫기
+    $('#modal-close').on('click', function (event) {
+        $('#chatroom-modal').addClass('hide');
+    });
+    $('#chatroom-modal').on('click', function (event) {
+        if ($(event.target).is('#chatroom-modal')) {
+            $(this).addClass('hide');
+        }
+    });
+
+    // form 제출
+    $('#scheduleForm').on('submit', function (event) {
+        event.preventDefault();
+
+        var formData = $(this).serialize();
+
+        $.ajax({
+            type: 'POST',
+            url: '/deal/schedule/save',
+            data: formData,
+            success: function (response) {
+                $('#chat-right').html(response);
+            },
+            error: function (error) {
+                console.error('에러 발생:', error);
+            }
+        });
+    });
+
+</script>

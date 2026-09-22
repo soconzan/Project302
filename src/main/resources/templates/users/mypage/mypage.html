@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout::layout(~{::title}, ~{::#content}, ~{::#upperScript}, ~{::#lowerScript})}">
+<head>
+    <!-- title 작성 위치 -->
+    <title></title>
+    <!-- 상단 script 작성 위치 -->
+    <!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#upperScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+    <script id="upperScript">
+
+    </script>
+</head>
+<body>
+
+<!-- #content 내부에 필요한 html 작성 -->
+<div id="content">
+    <link rel="stylesheet" href="/css/fullcalendar.css">
+    <section class="container mypage-top">
+        <p class="title">마이페이지</p>
+        <div class="mypage-list" th:include="~{users/mypage/_menubar}">
+            <!--        <th:block th:include="~{users/mypage/_menubar}"></th:block>-->
+        </div>
+    </section>
+
+    <section class="container mypage-content">
+        <div th:include="~{users/mypage/_calendar}" id="mypageCalendar"></div>
+        <!--        <div th:include="~{users/mypage/_graph_product}" id="mypageGraphProduct" style="display:none;"></div>-->
+        <div th:include="~{users/mypage/_univoauth}" id="mypageUnivoauth" style="display:none;"></div>
+        <div th:include="~{users/mypage/_editprofile}" id="mypageEditprofile" style="display:none;"></div>
+    </section>
+
+
+</div>
+
+<!-- 하단 script 작성 위치 -->
+<!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#lowerScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+<script id="lowerScript">
+    $(document).ready(function () {
+        // 페이지 로드 시에는 menubar와 calendar만 보이도록 설정
+        $('#mypageCalendar').show();
+        $('#mypageEditprofile').hide();
+        $('#mypageGraphProduct').hide();
+        $('#mypageUnivoauth').hide();
+
+        // 달력 섹션 클릭 시
+        $('#calendarSection').click(function () {
+            $('.mypage-list > div').removeClass('mypage-list-select');
+            $('#mypageCalendar').show();
+            $('#calendarSection').addClass('mypage-list-select');
+            $('#mypageEditprofile').hide();
+            $('#mypageGraphProduct').hide();
+            $('#mypageUnivoauth').hide();
+        });
+
+        // 이달의 수익 섹션 클릭 시
+        // $('#revenueSection').click(function () {
+        //     $('.mypage-list > div').removeClass('mypage-list-select');
+        //     $('#mypageCalendar').hide();
+        //     $('#mypageEditprofile').hide();
+        //     $('#mypageGraphProduct').show();
+        //     $('#mypageUnivoauth').hide();
+        // });
+
+        // 대학 인증 섹션 클릭 시
+        $('#universityAuthSection').click(function () {
+            $('.mypage-list > div').removeClass('mypage-list-select');
+            $('#mypageCalendar').hide();
+            $('#mypageEditprofile').hide();
+            $('#mypageGraphProduct').hide();
+            $('#mypageUnivoauth').show();
+            $('#universityAuthSection').addClass('mypage-list-select');
+        });
+
+        // 개인정보수정 섹션 클릭 시
+        $('#profileEditSection').click(function () {
+            $('.mypage-list > div').removeClass('mypage-list-select');
+            $('#mypageCalendar').hide();
+            $('#mypageEditprofile').show();
+            $('#profileEditSection').addClass('mypage-list-select');
+            $('#mypageGraphProduct').hide();
+            $('#mypageUnivoauth').hide();
+        });
+    });
+</script>
+</body>
+</html>

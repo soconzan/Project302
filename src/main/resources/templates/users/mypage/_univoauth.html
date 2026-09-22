@@ -1,0 +1,228 @@
+<th:block th:if="${editProfile.emailYn}">
+    <div class="mypage-auth-yes">
+        대학 인증이 되었습니다
+    </div>
+</th:block>
+
+<th:block th:unless="${editProfile.emailYn}">
+    <div class="mypage-auth-no">
+
+        <div class="auth-input-box">
+            <input type="text" id="univName" placeholder="대학을 검색하세요" disabled>
+            <button type="button" onclick="modalVisible()">대학 검색</button>
+        </div>
+        <input type="hidden" id="univId">
+
+        <div class="auth-input-box">
+            <input type="text" id="univEmail" placeholder="대학 메일">
+            <button type="button" onclick="univEmailCheckButton()">인증번호 전송</button>
+        </div>
+
+        <div class="auth-input-box">
+            <input type="text" id="univEmailAuth" placeholder="인증번호">
+            <button type="button" onclick="univEmailAuth()">인증번호 확인</button>
+        </div>
+
+        <span id="emailMessage"></span>
+
+        <!-- Modal -->
+        <div id="univModal" style="display: none">
+            <!--            <div class="modal-content">-->
+            <div>
+                <span class="close"><i class="fa-solid fa-xmark"></i></span>
+                <p class="title">대학 검색</p>
+
+                <div class="univModal-input">
+                    <input type="text" id="univNameInput" placeholder="대학명">
+                    <button type="button" onclick="checkUnivName()">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+
+                <div id="univModalBody">
+                    <!-- Search results will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<script>
+    function modalVisible() {
+        $('#univModal').show();
+    }
+
+    $(document).ready(function () {
+        // 엔터키를 눌렀을 때 검색
+        $('#univNameInput').on('keyup', function (event) {
+            if (event.key === 'Enter') {
+                checkUnivName();
+            }
+        });
+
+        // 검색 버튼 클릭 이벤트
+        $('#searchButton').on('click', function () {
+            checkUnivName();
+        });
+
+        // 모달 닫기 버튼 이벤트
+        $('.close').on('click', function () {
+            $('#univModal').hide();
+        });
+
+        // 모달 창 외부 클릭 시 닫기 기능
+        $(window).on('click', function (event) {
+            const modal = $('#univModal');
+            if (event.target === modal[0]) {
+                modal.hide();
+            }
+        });
+    });
+
+    function checkUnivName() {
+        const univName = $('#univNameInput').val().trim();
+        if (univName !== "" && univName.length >= 2) {
+            $.ajax({
+                url: `/mypage/univNameSearch?univName=${univName}`,
+                type: 'POST',
+                contentType: 'application/json',
+                success: function (data) {
+                    displayModal(data);
+                },
+                error: function (error) {
+                    console.log('Error:', error);
+                }
+            });
+        } else {
+            alert("검색어를 2글자 이상 입력해주세요.");
+        }
+    }
+
+    let name = $('#univName').val().trim();
+    let id = $('#univId').val().trim();
+    let email = $('#univEmail').val().trim();
+
+    let univInfo = {
+        idUniv: id,
+        nameUniv: name,
+        emailUniv: email
+    }
+
+    function univEmailAuth() {
+        const univEmailAuth = $('#univEmailAuth').val().trim();
+
+        name = $('#univName').val().trim();
+        id = $('#univId').val().trim();
+        email = $('#univEmail').val().trim();
+
+        univInfo = {
+            idUniv: id,
+            nameUniv: name,
+            emailUniv: email
+        }
+
+        $.ajax({
+            url: `/mypage/univEmailAuth?emailAuth=${univEmailAuth}`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(univInfo),
+            success: function (data) {
+                console.log('Success', data)
+                const message = $('#emailMessage');
+                if (data) {
+                    alert("인증이 완료되었습니다.")
+                    message.text('');
+                    window.location.replace(`/mypage`)
+
+                } else {
+                    // alert("인증번호가 일치하지 않습니다.");
+                    message.text('인증번호가 일치하지 않습니다.');
+                    message.css('color', 'red');
+                }
+            },
+            error: function (error) {
+                console.log('Error:', error);
+                alert("문제가 발생했습니다. 다시 시도해 주세요.");
+            }
+        });
+    }
+
+    function univEmailCheckButton() {
+        name = $('#univName').val().trim();
+        id = $('#univId').val().trim();
+        email = $('#univEmail').val().trim();
+
+        univInfo = {
+            idUniv: id,
+            nameUniv: name,
+            emailUniv: email
+        }
+
+
+        console.log(univInfo.idUniv)
+        console.log(univInfo.nameUniv)
+        console.log(univInfo.emailUniv)
+        if (univInfo.nameUniv !== "" && univInfo.emailUniv !== "") {
+            $.ajax({
+                url: `/mypage/univMailSend?mail=${email}`,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(univInfo),
+                success: function (data) {
+                    if (data) {
+                        alert("메일이 전송 됐습니다.");
+                    } else {
+                        alert("입력하신 대학과 일치하지 않은 이메일 입니다.")
+                    }
+                },
+                error: function (error) {
+                    console.log('Error:', error);
+                    alert("메일을 전송하는 중 문제가 발생했습니다. 다시 시도해 주세요.");
+                }
+            });
+        } else {
+            alert("모든 항목을 입력해주세요.")
+        }
+
+    }
+
+    function displayModal(data) {
+        const modal = document.getElementById("univModal");
+        const modalBody = document.getElementById("univModalBody");
+        modalBody.innerHTML = ''; // 기존 내용 초기화
+
+        // 데이터를 HTML로 변환하여 모달 창에 추가
+        data.forEach(univ => {
+            const univElement = document.createElement('div');
+            univElement.innerHTML = `
+                <input type="hidden"  value="${univ.univId}">
+                <div class="search-univ">
+                    <span class="search-univ-name">${univ.univName}</span>
+                    <span class="search-univ-addr">${univ.univAddr}</span>
+                </div>
+                <button type="button" class="selectUnivButton"data-univ-id="${univ.univId}" data-univ-name="${univ.univName}">선택</button>
+            `;
+
+            modalBody.appendChild(univElement);
+        });
+
+        // 선택하기 버튼 클릭 이벤트
+        $('.selectUnivButton').on('click', function () {
+            const selectedUnivName = $(this).data('univ-name');
+            const id = $(this).data('univ-id')
+
+            $('#univId').val(id)
+            $('#univName').val(selectedUnivName).show();
+
+            $('#univNameInput').val("")
+            $('#univModal').hide();
+
+            modalBody.innerHTML = ''; // 기존 내용 초기화
+        });
+
+        // 모달 창 열기
+        modal.show();
+    }
+
+
+</script>

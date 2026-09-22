@@ -1,0 +1,33 @@
+<!-- 프사, 닉네임, 마지막 메시지 날짜, 마지막 메시지 내용, 상품 사진 -->
+<a th:each="chat : ${chats}" th:href="@{'/chats/' + ${chat.chatId}}" class="chat-link">
+    <div th:class="${chat.partUsers.size() == 1 ? 'chat-list-profile' : 'chat-list-profiles'}">
+        <img th:each="user, stat : ${chat.partUsers}"
+             th:if="${user.userFileLink != null and (chat.partUsers.size() == 1 or stat.count <= 2)}"
+             th:src="${user.userFileLink}">
+    </div>
+    <div class="chat-list-info">
+        <p class="chat-list-nickname">
+            <span th:text="${chat.partUsers.size() == 1 ? chat.partUsers[0].nickname : chat.partUsers[0].nickname + ' 외 ' + chat.partUsers.size() + '명'}"></span>
+            <span class="chat-list-date"
+                  th:text="${#temporals.format(chat.creatDate, 'MM/dd HH:mm')}"></span>
+        </p>
+        <p class="chat-list-msg">
+            <span class="chat-list-content" th:text="${chat.content}"></span>
+<!--            <span class="chat-list-unread">?</span>-->
+        </p>
+    </div>
+    <div class="chat-list-product">
+        <img th:if="${chat.fileLink}!=null" th:src="${chat.fileLink}">
+    </div>
+</a>
+
+<script>
+    $('.chat-link').click(function (event) {
+        event.preventDefault();
+        $('#chat-right').html("");
+        var url = $(this).attr('href');
+        $.get(url, function (data) {
+            $('#chat-right').html(data);
+        });
+    });
+</script>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout::layout(~{::title}, ~{::#content}, ~{}, ~{})}">
+<head>
+    <title>PROJECT302</title>
+</head>
+<body>
+<!-- Content Start -->
+
+<div id="content">
+
+    <!-- Guest -->
+    <th:block sec:authorize="isAnonymous()" th:include="main/_guest"/>
+
+    <!-- 회원 -->
+    <th:block sec:authorize="isAuthenticated()">
+        <!-- 대학 인증 회원 -->
+        <th:block th:unless="${certified == null}" th:include="main/_main"/>
+        <!-- 대학 미인증 회원 -->
+        <th:block th:if="${certified == null}" th:include="main/_unauth"/>
+    </th:block>
+
+</div>
+<!-- Content End -->
+
+</body>
+</html>

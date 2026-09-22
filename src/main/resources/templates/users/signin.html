@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout::layout(~{::title}, ~{::#content}, ~{::#upperScript}, ~{::#lowerScript})}">
+<head>
+    <!-- title 작성 위치 -->
+    <title></title>
+    <!-- 상단 script 작성 위치 -->
+    <!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#upperScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+    <script id="upperScript">
+
+    </script>
+</head>
+<body>
+
+<!-- #content 내부에 필요한 html 작성 -->
+<div id="content">
+    <section class="signin container">
+        <p class="signin-title">Login</p>
+
+        <div th:if="${message} != null">
+            <input type="hidden" th:value="${message}" id="alertMessage">
+        </div>
+
+        <form th:action="@{/signin}" method="post" onsubmit="return check()" class="signin-form">
+            <input type="text" name="localId" id="localId" placeholder="ID">
+            <input type="password" name="password" id="password" placeholder="Password">
+            <input type="submit" value="Login">
+        </form>
+        <a th:href="@{/help/findUser}" class="join-btn">ID/PW 찾기</a>
+
+        <p class="signin-text">또는</p>
+        <div class="social-signin-box">
+            <a class="social-signin kakao" th:href="@{/oauth2/authorization/kakao}">
+                <img src="images/ic-kakao-login.png" alt="kakao">
+                <span>카카오 계정으로 로그인하기</span>
+            </a>
+            <a class="social-signin google" th:href="@{/oauth2/authorization/google}">
+                <img src="images/ic-google-login.png" alt="google">
+                <span>구글 계정으로 로그인 하기</span>
+            </a>
+        </div>
+        <a th:href="@{/users/join}" class="join-btn">아직 회원이 아니신가요?</a>
+    </section>
+</div>
+
+<!-- 하단 script 작성 위치 -->
+<!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#lowerScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+<script id="lowerScript">
+    document.addEventListener("DOMContentLoaded", function() {
+        const alertMessage = document.getElementById("alertMessage").value.trim();
+        if (alertMessage) {
+            alert(alertMessage);
+        }
+    });
+    function check() {
+        const localId = document.getElementById('localId').value;
+        const password = document.getElementById('password').value;
+        if (localId.length == 0 || password.length == 0) {
+            alert('모든 항목을 입력해주세요.');
+            return false;
+        }
+        return true;
+    }
+</script>
+</body>
+</html>

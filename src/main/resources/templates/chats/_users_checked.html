@@ -1,0 +1,118 @@
+<div id="chatroom-users-top">
+    <p id="chatroom-users-title" th:text="${product.dealStatus.name() == 'DEP' ? '입금 확인' : '전달 현황'}"></p>
+    <button id="chatroom-users-close">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+</div>
+
+<div id="chatroom-users-list">
+    <!-- 판매자 ㅇ.< -->
+    <div class="chatroom-users-item">
+        <div class="item-profile">
+            <img th:if="${product.userFileLink != null}" th:src="${product.userFileLink}">
+        </div>
+        <p class="item-nickname">
+            <span th:text="${product.nickname}"></span>
+        </p>
+        <i class="fa-solid fa-crown" style="font-size: 14px;"></i>
+    </div>
+
+    <!-- 나 >.< -->
+<!--    <div th:if="${product.userId != user.userId}" class="chatroom-users-item">-->
+<!--        <div class="item-profile">-->
+<!--            <img th:if="${user.userFileLink != null}" th:src="${user.userFileLink}">-->
+<!--        </div>-->
+<!--        <p class="item-nickname">-->
+<!--            <span th:text="${user.nickname}"></span>-->
+<!--        </p>-->
+<!--        <button class="item-check" th:value="${user.userId}">-->
+<!--            <i th:if="${user.checked}" class="fa-solid fa-check"></i>-->
+<!--        </button>-->
+<!--    </div>-->
+
+    <!-- 다른 사람 정보 >.ㅇ -->
+    <th:block th:each="user : ${dealUsers}">
+        <div th:if="${user.userId != product.userId}" class="chatroom-users-item">
+            <div class="item-profile">
+                <img th:if="${user.userFileLink != null}" th:src="${user.userFileLink}">
+            </div>
+            <p class="item-nickname">
+                <span th:text="${user.nickname}"></span>
+            </p>
+            <button class="item-check" th:value="${user.userId}">
+                <i th:if="${user.checked}" class="fa-solid fa-check"></i>
+            </button>
+        </div>
+    </th:block>
+
+</div>
+
+<div id="chatroom-users-bottom">
+    <button th:if="${user.userId == product.userId && product.dealStatus.name() == 'DEP'}" class="chatroom-users-btn dep-btn">
+        <i class="fa-solid fa-list-check"></i>
+        <span>모두 입금했어요!</span>
+    </button>
+<!--    <button th:if="${user.userId == product.userId && product.dealStatus.name() == 'SEND'}" class="chatroom-users-btn send-btn">-->
+<!--        <i class="fa-solid fa-list-check"></i>-->
+<!--        <span>모두 전달했어요!</span>-->
+<!--    </button>-->
+</div>
+
+<!-- 버튼  처리 시작 -->
+<script th:inline="javascript" defer>
+
+    var dealStatus = [[${product.dealStatus.name()}]]
+    console.log(dealStatus)
+
+    $(document).ready(function () {
+        var itemCheckButtons = document.querySelectorAll('.item-check');
+
+        // 체크
+        itemCheckButtons.forEach(function (button) {
+            button.addEventListener('click', function (event) {
+                if (dealStatus == 'SEND') {
+                    return;
+                }
+
+                var userId = event.target.value;
+                console.log('userId : ' + userId);
+
+                fetch(`/api/deal/check/${pdId}/${userId}`, {
+                    method: 'GET'
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            if (button.innerHTML.trim() === '') {
+                                event.target.innerHTML = '<i class="fa-solid fa-check"></i>';
+                            } else {
+                                event.target.innerHTML = "";
+                            }
+                            return response.json();
+                        }
+                    })
+                    .then(data => {
+                        console.log(data);
+                        if (data === true) {
+                            $('#chatroom-users-check').addClass('hide');
+                            var url = `/chats/${chatId}`;
+                            $.get(url, function (data) {
+                                $('#chat-right').html(data)
+                            });
+
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Controller 호출 실패:', error);
+                    });
+
+            });
+        });
+
+        // 창 닫기
+        $('#chatroom-users-check').on('click', '#chatroom-users-close', function (event) {
+            $('#chatroom-users-check').addClass('hide');
+        });
+
+    });
+</script>
+<!-- 버튼 처리 끝 -->

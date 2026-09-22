@@ -1,0 +1,224 @@
+<!-- home notice section start -->
+<section class="main-card container">
+    <!-- 중고거래 페이지 링크 -->
+    <a th:href="@{/products}" class="card used-card">
+        <p>필요한 물건을 찾아보세요!</p>
+        <h4>중고거래 바로가기</h4>
+        <h6>→</h6>
+    </a>
+    <!-- 공동구매 페이지 링크 -->
+    <a th:href="@{/groups}" class="card group-card">
+        <p>302만의 알뜰한 구매 방법</p>
+        <h4>공동구매 바로가기</h4>
+        <h6>→</h6>
+    </a>
+</section>
+<!-- home notice section end -->
+
+<!-- home main items start -->
+<section class="main-items container">
+    <!-- 추천 중고거래 상품 (최신순) 8개 -->
+    <div class="main-product">
+        <h4>최근 등록된 중고거래✨</h4>
+        <div class="product-list">
+            <div th:each="product : ${products}" class="product-item">
+                <a th:href="@{/products/{id}(id=${product.pdId})}">
+                    <div class="product-thumbnail">
+                        <img th:src="${product.fileId}" alt="Product Image">
+                        <div class="product-heart"><i class="fa-regular fa-heart"></i></div>
+                    </div>
+                    <div class="product-info">
+                        <p class="product-title" th:text="${product.pdName}"></p>
+                        <p class="product-price" th:text="${product.pdPrice} + '원'"></p>
+                        <p class="product-date" th:text="${product.formattedPullUpDate}"></p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="main-items container">
+    <div class="main-product">
+        <!-- 추천 공동구매 상품 (마감임박순) 6개 -->
+        <div class="main-group">
+            <h4>곧 마감되는 공구🔥</h4>
+            <th:block th:insert="_indexGroupList"></th:block>
+        </div>
+    </div>
+</section>
+<!-- home main items end -->
+
+<!-- home group map start -->
+<section class="main-group-map container">
+    <h4>공구 현황</h4>
+    <div class="main-group-map-api">
+        <th:block th:insert="_indexMap"></th:block>
+        <!-- 지도 api 연결 -->
+        <!--        지도 api 연결할 부분 ㅇ.<-->
+    </div>
+</section>
+<!-- home group map end -->
+
+<!-- home shortcut section start -->
+<!--<section class="main-shortcuts container">-->
+<!--    &lt;!&ndash; 전공서적 카테고리 링크 &ndash;&gt;-->
+<!--    <a href="#" class="main-shortcut">-->
+<!--        <div class="shortcut-icon">-->
+<!--            📖-->
+<!--            &lt;!&ndash; <img src="#" alt=""> &ndash;&gt;-->
+<!--        </div>-->
+<!--        <h6>전공서적</h6>-->
+<!--    </a>-->
+<!--    &lt;!&ndash; 자취생 카테고리 링크 &ndash;&gt;-->
+<!--    <a href="#" class="main-shortcut">-->
+<!--        <div class="shortcut-icon">-->
+<!--            🛋️-->
+<!--            &lt;!&ndash; <img src="#" alt=""> &ndash;&gt;-->
+<!--        </div>-->
+<!--        <h6>자취생</h6>-->
+<!--    </a>-->
+<!--    &lt;!&ndash; 택시엔빵 카테고리 링크 &ndash;&gt;-->
+<!--    <a href="#" class="main-shortcut">-->
+<!--        <div class="shortcut-icon">-->
+<!--            🚌-->
+<!--            &lt;!&ndash; <img src="#" alt=""> &ndash;&gt;-->
+<!--        </div>-->
+<!--        <h6>통학러</h6>-->
+<!--    </a>-->
+<!--    &lt;!&ndash; OTT 카테고리 링크 &ndash;&gt;-->
+<!--    <a href="#" class="main-shortcut">-->
+<!--        <div class="shortcut-icon">-->
+<!--            🏠-->
+<!--            &lt;!&ndash; <img src="#" alt=""> &ndash;&gt;-->
+<!--        </div>-->
+<!--        <h6>홈프로텍터</h6>-->
+<!--    </a>-->
+<!--</section>-->
+<!-- home shortcut section end -->
+
+
+
+<!-- home search delivery box start -->
+<!--<section class="main-search-deliverybox container">-->
+<!--    &lt;!&ndash; 있으면 머.. 좋을 듯 빼도 됨 &ndash;&gt;-->
+<!--    <a href="#" class="bg-yellow">-->
+<!--        📦우리 학교 근처 무인택배함 찾기 →-->
+<!--    </a>-->
+<!--</section>-->
+<!-- home search delivery box end -->
+
+<!-- home recommanded product start -->
+<!--<section class="main-recommand-products container">-->
+<!--    &lt;!&ndash; 추천 카테고리 상품들 (인기순) 4개 &ndash;&gt;-->
+<!--    <div class="recommand-category">-->
+<!--        <h4>새학기 전공서적</h4>-->
+<!--        <div class="product-list">-->
+<!--            &lt;!&ndash; 상품페이지 링크 &ndash;&gt;-->
+<!--            <a href="#" class="product-item">-->
+<!--                <div class="product-thumbnail">-->
+<!--                    &lt;!&ndash; 상품 대표 사진 &ndash;&gt;-->
+<!--                    <img src="images/sample.jpg" alt="">-->
+<!--                </div>-->
+<!--                <div class="product-info">-->
+<!--                    <p class="product-title">제목 길면 짤림 빤쮸토끼 카메라 키링</p>-->
+<!--                    <p class="product-price">12,000원</p>-->
+<!--                    <p class="product-date">하루 전</p>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--            &lt;!&ndash; 상품페이지 링크 &ndash;&gt;-->
+<!--            <a href="#" class="product-item">-->
+<!--                <div class="product-thumbnail">-->
+<!--                    &lt;!&ndash; 상품 대표 사진 &ndash;&gt;-->
+<!--                    <img src="#" alt="">-->
+<!--                </div>-->
+<!--                <div class="product-info">-->
+<!--                    <p class="product-title">빤쮸토끼 키링</p>-->
+<!--                    <p class="product-price">12,000원</p>-->
+<!--                    <p class="product-date">하루 전</p>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--            &lt;!&ndash; 상품페이지 링크 &ndash;&gt;-->
+<!--            <a href="#" class="product-item">-->
+<!--                <div class="product-thumbnail">-->
+<!--                    &lt;!&ndash; 상품 대표 사진 &ndash;&gt;-->
+<!--                    <img src="#" alt="">-->
+<!--                </div>-->
+<!--                <div class="product-info">-->
+<!--                    <p class="product-title">빤쮸토끼 키링</p>-->
+<!--                    <p class="product-price">12,000원</p>-->
+<!--                    <p class="product-date">하루 전</p>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--            &lt;!&ndash; 상품페이지 링크 &ndash;&gt;-->
+<!--            <a href="#" class="product-item">-->
+<!--                <div class="product-thumbnail">-->
+<!--                    &lt;!&ndash; 상품 대표 사진 &ndash;&gt;-->
+<!--                    <img src="#" alt="">-->
+<!--                </div>-->
+<!--                <div class="product-info">-->
+<!--                    <p class="product-title">빤쮸토끼 키링</p>-->
+<!--                    <p class="product-price">12,000원</p>-->
+<!--                    <p class="product-date">하루 전</p>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</section>-->
+<!--<section class="main-recommand-products container">-->
+<!--    &lt;!&ndash; 추천 카테고리 상품들 (인기순) 4개 &ndash;&gt;-->
+<!--    <div class="recommand-category">-->
+<!--        <h4>자취생 필수템</h4>-->
+<!--        <div class="product-list">-->
+<!--            &lt;!&ndash; 상품페이지 링크 &ndash;&gt;-->
+<!--            <a href="#" class="product-item">-->
+<!--                <div class="product-thumbnail">-->
+<!--                    &lt;!&ndash; 상품 대표 사진 &ndash;&gt;-->
+<!--                    <img src="images/sample.jpg" alt="">-->
+<!--                </div>-->
+<!--                <div class="product-info">-->
+<!--                    <p class="product-title">제목 길면 짤림 빤쮸토끼 카메라 키링</p>-->
+<!--                    <p class="product-price">12,000원</p>-->
+<!--                    <p class="product-date">하루 전</p>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--            &lt;!&ndash; 상품페이지 링크 &ndash;&gt;-->
+<!--            <a href="#" class="product-item">-->
+<!--                <div class="product-thumbnail">-->
+<!--                    &lt;!&ndash; 상품 대표 사진 &ndash;&gt;-->
+<!--                    <img src="#" alt="">-->
+<!--                </div>-->
+<!--                <div class="product-info">-->
+<!--                    <p class="product-title">빤쮸토끼 키링</p>-->
+<!--                    <p class="product-price">12,000원</p>-->
+<!--                    <p class="product-date">하루 전</p>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--            &lt;!&ndash; 상품페이지 링크 &ndash;&gt;-->
+<!--            <a href="#" class="product-item">-->
+<!--                <div class="product-thumbnail">-->
+<!--                    &lt;!&ndash; 상품 대표 사진 &ndash;&gt;-->
+<!--                    <img src="#" alt="">-->
+<!--                </div>-->
+<!--                <div class="product-info">-->
+<!--                    <p class="product-title">빤쮸토끼 키링</p>-->
+<!--                    <p class="product-price">12,000원</p>-->
+<!--                    <p class="product-date">하루 전</p>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--            &lt;!&ndash; 상품페이지 링크 &ndash;&gt;-->
+<!--            <a href="#" class="product-item">-->
+<!--                <div class="product-thumbnail">-->
+<!--                    &lt;!&ndash; 상품 대표 사진 &ndash;&gt;-->
+<!--                    <img src="#" alt="">-->
+<!--                </div>-->
+<!--                <div class="product-info">-->
+<!--                    <p class="product-title">빤쮸토끼 키링</p>-->
+<!--                    <p class="product-price">12,000원</p>-->
+<!--                    <p class="product-date">하루 전</p>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</section>-->
+<!-- home recommanded product end -->

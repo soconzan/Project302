@@ -1,0 +1,82 @@
+<div class="search-empty" th:if="${groupsEmpty}">
+    찾으시는 공동구매 상품 결과가 없습니다
+</div>
+<div class="search-not-empty" th:unless="${groupsEmpty}">
+
+    <div class="main-group-list">
+        <a th:each="group, num : ${groups}"
+           th:href="@{/groups/{pd_id}(pd_id=${group.pdId})}" class="group-item">
+            <div class="group-thumbnail">
+                <img th:src="${group.fileId}" alt="Group Image">
+            </div>
+            <div class="group-info">
+                <!--글의 좌표-->
+                <p th:text="${group.latitude}" th:id="'latitude' + ${num.index}" th:hidden="hidden"></p>
+                <p th:text="${group.longitude}" th:id="'longitude' + ${num.index}"
+                   th:hidden="hidden"></p>
+                <p th:text="${group.roundYn}" th:id="'roundYn' + ${num.index}" th:hidden="hidden"></p>
+                <!--가격 최소~최대-->
+                <p class="product-price" th:text="${group.pdPrice/group.maxPeople}"
+                   th:id="'minP' + ${num.index}" style="display: none;"></p>
+                <p class="product-price" th:text="${group.pdPrice/group.minPeople}"
+                   th:id="'maxP' + ${num.index}" style="display: none;"></p>
+                <!--content(hidden)-->
+                <p th:text="${group.pdContent}" th:id="'pdContent' + ${num.index}" hidden="hidden"></p>
+
+                <div class="group-info-top">
+                    <p class="group-title" th:text="${group.pdName}" th:id="'pdName' + ${num.index}"></p>
+                    <p th:text="${group.pullUpDate}" id="pullUp"></p>
+                </div>
+
+                <p class="group-price" th:id="'newPrice' + ${num.index}"
+                   th:text="${group.pdPrice/group.maxPeople} + '~' + ${group.pdPrice/group.minPeople}"></p>
+
+            </div>
+            <div class="group-current">
+                <p class="group-d-day" th:text="${group.closDate}" th:id="closDate"></p>
+                <p class="group-headcount" th:id="people"
+                   th:text="'(' + ${group.chatCount} + '/' + ${group.maxPeople} + ')'"></p>
+            </div>
+        </a>
+    </div>
+
+    <!--상품이 여러개일때 키워드만-->
+    <th:block th:if="${totalGroups > 1}">
+        <button class="search-more"
+                th:onclick="|location.href='@{/groups?page=0&ctgr_id=&sort=create_date(keyword=${keyword})}'|">더보기
+        </button>
+    </th:block>
+    <!--상품이 1개일때는 좌표 받아서 띄우기-->
+    <th:block th:if="${totalGroups == 1}">
+        <button class="search-more"
+                th:onclick="|location.href='@{/groups?page=0&ctgr_id=&sort=create_date(latitude=${firstLati},longitude=${firstLong},keyword=${keyword})}'|">
+            더보기
+        </button>
+    </th:block>
+</div>
+<script>
+    // 처음에 적용
+    document.addEventListener("DOMContentLoaded", function () {
+        // 페이지 로드 시에도 실행
+        upMoney();
+    });
+
+    // 십의 자리 올리기 함수
+    function upMoney() {
+        for (var i = 0; i <= 20; i++) {
+            var minP = document.querySelector("#minP" + i).textContent;
+            var maxP = document.querySelector("#maxP" + i).textContent;
+            var roundYn = document.querySelector("#roundYn" + i).textContent;
+            if (roundYn === 'true') {
+                // 형 변환
+                Number(minP);
+                Number(maxP);
+                // 십의 자리 올리기
+                minP = Math.ceil(minP / 100) * 100;
+                maxP = Math.ceil(maxP / 100) * 100;
+                document.getElementById("newPrice" + i).innerHTML = '최소 ' + minP + '~' + '최대 ' + maxP;
+            }
+            document.getElementById("newPrice" + i).innerHTML = '최소 ' + minP + '~' + '최대 ' + maxP;
+        }
+    }
+</script>

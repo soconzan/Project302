@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout::layout(~{::title}, ~{::#content}, ~{::#upperScript}, ~{::#lowerScript})}">
+<head>
+    <!-- title 작성 위치 -->
+    <title>Title</title>
+
+    <!-- 상단 script 작성 위치 -->
+    <!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#upperScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+    <script id="upperScript">
+    </script>
+</head>
+<body>
+
+<!-- #content 내부에 필요한 html 작성 -->
+
+<div id="content">
+
+    <link href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+    <section class="container create">
+        <div id="product">
+            <form th:action="@{/products/save}" th:object="${product}" method="post" enctype="multipart/form-data"
+                  id="pdForm">
+
+                <p class="create-title">중고거래 등록하기</p>
+
+                <div class="create-form-item">
+                    <label>카테고리</label>
+                    <select name="ctgrId" form="pdForm">
+                        <option th:unless="${category.ctgrId == 12}" th:each="category : ${categories}"
+                                th:value="${category.ctgrId}"
+                                th:text="${category.ctgrName}"></option>
+                    </select>
+                </div>
+
+                <!-- file upload -->
+                <div id="image_preview">
+                    <label for="btnAtt"><i class="fa-regular fa-images"></i></label>
+                    <input type="file" id="btnAtt" multiple="multiple" name="imgList[]" hidden/>
+                    <div id="att_zone"
+                         data-placeholder='파일을 첨부 하려면 파일 선택 버튼을 클릭하거나 파일을 드래그앤드롭 하세요'></div>
+                </div>
+
+                <div class="productName create-form-item">
+                    <div class="create-form-label">
+                        <label>제목</label>
+                        <a target="_blank" th:href="@{|/products/prohibitedItems|}">
+                            거래금지 품목 보기
+                        </a>
+                    </div>
+                    <input type="text" name="pdName" placeholder="상품명을 입력해 주세요">
+                </div>
+
+                <div class="create-form-item">
+                    <label>가격</label>
+                    <div class="create-form-input">
+                        <input type="number" name="pdPrice">
+                        <span>원</span>
+                    </div>
+                </div>
+
+                <div class="create-form-item">
+                    <label>상품 상태</label>
+                    <div class="create-form-input">
+                <span th:each="status : ${pdStatus}">
+                <th:block th:unless="${status == T(org.example.project302.product.entity.ProductStatus).GROUP}">
+                    <input type="radio" th:field="*{pdStatus}" th:value="${status.name()}">
+                    <label th:for="${#ids.prev('pdStatus')}" th:text="${status.description}">
+                    </label>
+                </th:block>
+            </span>
+                    </div>
+                </div>
+
+                <div class="create-form-item">
+                    <label>설명</label>
+                    <textarea name="pdContent" rows="5" cols="30"></textarea>
+                </div>
+
+                <div class="ottOption create-form-item">
+                    <label>거래 위치</label>
+                    <input type="text" id="latitude" hidden name="latitude">
+                    <input type="text" id="longitude" hidden name="longitude">
+                    <div id="map"></div>
+                    <input type="text" name="detailAddr" placeholder="상세주소 (ex. ○○대 정문)">
+                </div>
+
+                <input type="submit" value="등록">
+            </form>
+        </div>
+    </section>
+
+    <script>
+        var uniLa = [[${univ.univLatitude}]];
+        var unuLo = [[${univ.univLongitude}]];
+
+        var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+            mapOption = {
+                center: new kakao.maps.LatLng(uniLa, unuLo), // 지도의 중심좌표
+                level: 3 // 지도의 확대 레벨
+            };
+
+        var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+        // var map = new daum.maps.Map(mapContainer, mapOption);
+
+        // 지도를 클릭한 위치에 표출할 마커입니다
+        var marker = new kakao.maps.Marker({
+            // 지도 중심좌표에 마커를 생성합니다
+            position: map.getCenter()
+        });
+
+        // 지도에 마커를 표시합니다
+        marker.setMap(map);
+
+        // 지도에 클릭 이벤트를 등록합니다
+        // 지도를 클릭하면 마지막 파라미터로 넘어온 함수를 호출합니다
+        kakao.maps.event.addListener(map, 'click', function (mouseEvent) {
+
+            // 클릭한 위도, 경도 정보를 가져옵니다
+            var latlng = mouseEvent.latLng;
+
+            // 마커 위치를 클릭한 위치로 옮깁니다
+            marker.setPosition(latlng);
+
+            // input 요소 선택
+            var inputLat = document.getElementById("latitude");
+            inputLat.value = latlng.getLat();
+            var inputLng = document.getElementById("longitude");
+            inputLng.value = latlng.getLng();
+
+            console.log("lat : " + inputLat.value + ", lng : " + inputLng.value);
+
+
+        });
+
+        $(function () {
+            $("#sortable").sortable({
+                update: function (event, ui) {
+                    updateOrder();
+                }
+            });
+            $("#sortable").disableSelection();
+        });
+
+        // 사진 번호 붙이는 메소드
+        function updateOrder(id) {
+            var images = $(".fileIndex");
+            images.each(function (index) {
+                $(this).find('.image-order').text(index + 1);
+            });
+        }
+
+        // 사진 보여 주기(미리 보기)
+        function makeDiv(file) {
+            const div = document.createElement('div');
+            div.setAttribute('class', 'image-container');
+            div.innerHTML += `<button data-index='${file.lastModified}' class='file-remove'>X</button>`
+
+            // 이미지 번호 부여
+            const order = document.createElement('div');
+            order.setAttribute('class', 'image-order');
+            div.appendChild(order);
+
+            const img = document.createElement('img');
+            img.setAttribute('style', 'width:100%;height:100%;z-index:none');
+
+            // 방법2(성공)
+            img.src = URL.createObjectURL(file);
+
+            // 방법1(실패)
+            // const reader = new FileReader();
+            //
+            // reader.onload = function (ee) {
+            //     img.src = ee.target.result;
+            //     alert(img.src)
+            // };
+            // reader.readAsDataURL(file);
+
+            div.appendChild(img);
+
+            return div;
+        }
+
+        // 사진 동적으로 동작
+        const handle = {
+            // 기존 파일을 저장
+            files: [],
+            init() {
+                console.log(this.files)
+                // 파일 선택
+                const fileInput = document.querySelector("#btnAtt");
+                // 미리 보기
+                const preview = document.querySelector("#att_zone");
+
+
+                fileInput.addEventListener('change', () => {
+                    // 새로운 파일
+                    const newFiles = Array.from(fileInput.files)
+
+                    // 새로운 파일 추가
+                    newFiles.forEach(file => {
+                        const isDuplicate = this.files.some(exist =>
+                            exist.size === file.size &&
+                            exist.lastModified === file.lastModified
+                        );
+                        if (!isDuplicate) {
+                            this.files.push(file);
+                        }
+                    });
+
+                    // 아이디 넣는 배열 생성
+                    const ids = [];
+                    preview.innerHTML = '';
+                    this.files.forEach(file => {
+                        const div = document.createElement('div');
+                        const appendDiv = makeDiv(file); // makeDiv 함수 호출하여 미리보기 이미지를 생성
+                        div.id = file.lastModified;
+                        // 배열에 아이디 값만 넣기
+                        if (!ids.includes(div.id)) {
+                            ids.push(div.id)
+                        }
+                        div.className = 'fileIndex';
+
+                        div.appendChild(appendDiv);
+                        // 사진 순서 정렬
+                        updateOrder(div.id)
+                        preview.appendChild(div);
+                    });
+
+                    console.log(ids)
+                    // 아이디 배열 매개변수로 넘기기
+                    updateFileInput(ids);
+                });
+            },
+            // 사진 삭제
+            removeFile() {
+                const self = this; // handle 객체를 가리키도록 self 변수에 할당
+
+                document.addEventListener('click', function (e) {
+                    if (e.target.className !== 'file-remove') return;
+                    const ids = [];
+                    const removeTargetId = e.target.dataset.index;
+                    console.log(removeTargetId);
+                    const removeTarget = document.getElementById(removeTargetId);
+
+                    // handle.files 배열에서 삭제 대상 파일 제거
+                    self.files = self.files.filter(file => file.lastModified.toString() !== removeTargetId);
+
+                    const dataTransfer = new DataTransfer();
+                    self.files.forEach(file => {
+                        dataTransfer.items.add(file);
+                        ids.push(file.lastModified.toString());
+                    });
+
+                    document.querySelector('#btnAtt').files = dataTransfer.files;
+
+                    removeTarget.remove();
+                    updateFileInput(ids);
+                    e.preventDefault();
+                });
+            },
+        }
+        handle.init()
+        handle.removeFile();
+
+        let fileArray = [];
+
+        function updateFileInput(fileIds) {
+            console.log(fileIds)
+            const fileInput = document.querySelector("#btnAtt");
+            const dataTransfer = new DataTransfer();
+            const fileElement = handle.files;
+            console.log(fileElement)
+            if (fileElement.length > 0) {
+                // 변경된 파일 아이디들
+                for (let i = 0; i < fileIds.length; i++) {
+                    const files = fileIds[i]
+                    // 원래 있던 파일들
+                    for (let j = 0; j < fileElement.length; j++) {
+                        // 둘의 아이디 값이 같으면 해당되는 파일을 새로운 파일에 추가
+                        if (parseInt(files) === parseInt(fileElement[j].lastModified)) {
+                            const newFile = fileElement[j];
+                            dataTransfer.items.add(newFile);
+                        }
+                    }
+                }
+            }
+            // 기존 파일에 새로운 파일 넣기
+            fileInput.files = dataTransfer.files;
+            console.log(fileInput.files)
+        }
+
+        const fileInput = document.querySelector("#btnAtt");
+        const preview = document.querySelector("#att_zone");
+
+        fileInput.onchange = function (e) {
+            var files = e.target.files;
+            var fileArr = Array.prototype.slice.call(files);
+            for (f of fileArr) {
+                makeDiv(f);
+            }
+        };
+
+        // 탐색기에서 드래그앤 드롭 사용
+        preview.addEventListener('dragenter', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+
+        preview.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+
+        preview.addEventListener('drop', function (e) {
+            var files = {};
+            e.preventDefault();
+            e.stopPropagation();
+            var dt = e.dataTransfer;
+            files = dt.files;
+            const newFiles = Array.from(files);
+            for (const file of newFiles) {
+                const div = makeDiv(file);
+                div.id = file.lastModified;
+                div.className = 'fileIndex';
+                preview.appendChild(div);
+                fileArray.push(file.lastModified.toString());
+            }
+            updateFileInput(fileArray);
+        }, false);
+
+        $(preview).sortable({
+            axis: 'x', // x축 방향으로만 드래그 가능
+            containment: "parent", // 부모 요소 내에서만 드래그 가능
+            tolerance: 'pointer', // 마우스 포인터가 요소 위에 있을 때만 드래그 가능
+            update: function (event, ui) {
+                updateOrder();
+                const newFileArray = Array.from(fileInput.files);
+                const images = $(".fileIndex");
+                // 드래그로 변경된 아이디값들 변경하기
+                newFileArray.forEach((file, index) => {
+                    const id = $(images[index]).attr('id');
+                    fileArray[index] = id
+                });
+                // 파일 바꾸는 메소드에 변경된 아이디 값들 매개변수로 넣기
+                updateFileInput(fileArray);
+            }
+        });
+    </script>
+</div>
+
+<!-- 하단 script 작성 위치 -->
+<!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#lowerScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+<script id="lowerScript">
+
+</script>
+</body>
+</html>
+

@@ -1,0 +1,217 @@
+
+<!-- 삭제 또는 숨김 상품 처리 -->
+<th:block th:if="${product == null}">
+    <a class="chatroom-product-detail"
+       th:href="${product.pdStatus.name() == 'GROUP' ? '/groups/' + product.pdId : '/products/' + product.pdId}">
+        <div class="chatroom-product-thumbnail">
+            <img src="https://hailmarybc.s3.ap-northeast-2.amazonaws.com/no-product.png">
+        </div>
+        <div class="chatroom-product-info">
+            <p class="chatroom-product-name">
+                <span>상품을 찾을 수 없습니다.</span>
+        </div>
+    </a>
+</th:block>
+
+<th:block th:if="${product != null}">
+    <!-- 상품 사진, 상품 이름, 상품 가격 -->
+    <a class="chatroom-product-detail"
+       th:href="${product.pdStatus.name() == 'GROUP' ? '/groups/' + product.pdId : '/products/' + product.pdId}">
+        <div class="chatroom-product-thumbnail">
+            <img th:if="${product.fileLink}!=null" th:src="${product.fileLink}">
+        </div>
+        <div class="chatroom-product-info">
+            <p class="chatroom-product-name">
+                <span th:text="${product.pdName}"></span>
+                <span class="chatroom-product-status" th:text="${product.dealStatusKr}"></span></p>
+            <p class="chatroom-product-price"
+               th:text="${product.pdStatus.name() == 'GROUP' ? product.priceRange : product.pdPrice + '원'}"></p>
+        </div>
+    </a>
+
+    <!-- 상품 상태 변경, 예약, 약속 버튼 -->
+    <div class="chatroom-product-btns">
+
+        <!-- 중고상품 시작 -->
+        <th:block th:if="${product.pdStatus.name() != 'GROUP'}">
+            <!-- 판매중 -->
+            <button type="button" value="RESV" class="chatroom-product-btn deal-status-btn"
+                    th:if="${product.dealStatus.name() == 'SELL' && product.userId == user.userId}">
+                예약하기
+            </button>
+
+            <!-- 거래 참여자들에게만 버튼 보여야 함 -->
+            <th:block th:if="${isDealing}">
+                <!-- 예약중 -->
+                <button type="button" value="SELL" class="chatroom-product-btn deal-status-btn"
+                        th:if="${product.dealStatus.name() == 'RESV'}">
+                    <i class="fa-solid fa-xmark"></i> 예약 취소
+                </button>
+                <button type="button" class="chatroom-product-btn schedule-form-btn"
+                        th:if="${product.dealStatus.name() == 'RESV' && product.userId == user.userId && product.scheduleDate == null}">
+                    <i class="fa-solid fa-pencil"></i> 약속 잡기
+                </button>
+                <button type="button" class="chatroom-product-btn schedule-view-btn"
+                        th:if="${product.dealStatus.name() == 'RESV' && product.scheduleDate != null}">
+                    <i class="fa-regular fa-calendar"></i> 일정 확인
+                </button>
+                <button type="button" value="SOLD" class="chatroom-product-btn deal-status-btn"
+                        th:if="${product.dealStatus.name() == 'RESV' && product.userId == user.userId}">
+                    <i class="fa-solid fa-check"></i> 거래 완료
+                </button>
+                <!-- 거래 완료 -->
+                <a th:href="@{/review(pdId=${product.pdId})}"
+                   th:if="${product.dealStatus.name() == 'SOLD' && !hasReview}"
+                   class="chatroom-product-btn">
+                    거래 후기 남기기
+                </a>
+            </th:block>
+        </th:block>
+        <!-- 중고상품 끝 -->
+
+        <!-- 공동구매 시작 -->
+        <th:block th:if="${product.pdStatus.name() == 'GROUP'}">
+            <!-- 판매중 -->
+            <button type="button" value="DEP" class="chatroom-product-btn deal-status-btn"
+                    th:if="${product.dealStatus.name() == 'SELL' && product.userId == user.userId}">
+                이 멤버로 공구 진행하기
+            </button>
+            <!-- 입금중 -->
+            <button type="button" class="chatroom-product-btn  show-checklist-btn"
+                    th:if="${product.dealStatus.name() == 'DEP' && product.userId == user.userId}">
+                <i class="fa-solid fa-users"></i> 입금 확인
+            </button>
+            <button type="button" value="HI" class="chatroom-product-btn show-checklist-btn"
+                    th:if="${product.dealStatus.name() == 'DEP' && product.userId != user.userId}">
+                <i class="fa-solid fa-users"></i> 입금 현황
+            </button>
+            <!-- 구매중 -->
+            <button type="button" class="chatroom-product-btn schedule-form-btn"
+                    th:if="${product.userId == user.userId && product.scheduleDate == null && (product.dealStatus.name() == 'BUY' || product.dealStatus.name() == 'SEND')}">
+                <i class="fa-solid fa-pencil"></i> 약속 잡기
+            </button>
+            <button type="button" class="chatroom-product-btn schedule-view-btn"
+                    th:if="${product.scheduleDate != null && (product.dealStatus.name() == 'BUY' || product.dealStatus.name() == 'SEND')}">
+                <i class="fa-regular fa-calendar"></i> 일정 확인
+            </button>
+            <button type="button" value="SEND" class="chatroom-product-btn deal-status-btn"
+                    th:if="${product.dealStatus.name() == 'BUY' && product.userId == user.userId}">
+                <i class="fa-solid fa-check"></i> 구매 완료
+            </button>
+            <!-- 전달중 -->
+            <button type="button" class="chatroom-product-btn show-checklist-btn"
+                    th:if="${product.dealStatus.name() == 'SEND'}">
+                <i class="fa-solid fa-users"></i> 전달 현황
+            </button>
+            <!-- 곤란하다 유저 정보 가져와서 확인해야 한다 -->
+            <!-- ☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★ -->
+            <!-- ☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★ -->
+            <!-- ☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★ -->
+            <!-- ☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★ -->
+            <!-- ☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★☆★ -->
+            <button type="button" class="chatroom-product-btn check-take-btn"
+                    th:if="${product.dealStatus.name() == 'SEND' && product.userId != user.userId && userDeal.checked}">
+                <i class="fa-solid fa-hourglass-half"></i> 아직 못 받았어요!
+            </button>
+            <button type="button" class="chatroom-product-btn check-take-btn"
+                    th:if="${product.dealStatus.name() == 'SEND' && product.userId != user.userId && !userDeal.checked}">
+                <i class="fa-solid fa-check"></i> 전달 받았어요!
+            </button>
+
+            <!-- 거래 완료 -->
+            <!--            <button type="button" class="chatroom-product-btn"-->
+            <!--                    th:if="${product.dealStatus.name() == 'SOLD' && !hasReview}">-->
+            <!--                거래 후기 남기기-->
+            <!--            </button>-->
+            <!-- 구매자 -->
+            <a th:href="@{/review(pdId=${product.pdId})}"
+               th:if="${product.dealStatus.name() == 'SOLD' && !hasReview && product.userId != user.userId}"
+               class="chatroom-product-btn">
+                거래 후기 남기기
+            </a>
+            <!-- 판매자 -->
+            <button type="button" id="review-list-btn"
+                    th:if="${product.dealStatus.name() == 'SOLD' && !hasReview && product.userId == user.userId}"
+                    class="chatroom-product-btn">
+                거래 후기 남기기
+            </button>
+        </th:block>
+        <!-- 공동구매 끝 -->
+
+    </div>
+</th:block>
+
+
+<!-- modal start -->
+<div id="chatroom-modal" class="hide"></div>
+
+<!-- modal end -->
+
+<script defer>
+
+    var pdId = [[${product.pdId}]];
+
+    document.querySelector('#chatroom-product').addEventListener('click', function (event) {
+        var target = event.target;
+
+        /* 상품 거래 상태 변경 */
+        if (target.classList.contains('deal-status-btn')) {
+            var url = `/deal/${chatId}/${target.value}`;
+            $.get(url, function (data) {
+                $('#chat-right').html(data);
+            });
+        }
+
+        /* 입금 및 전달 정보 확인 */
+        if (target.classList.contains('show-checklist-btn')) {
+            var url = `/deal/${pdId}/checkedlist`;
+            $.get(url, function (data) {
+                $('#chatroom-users-check').html(data);
+            });
+            $('#chatroom-users-check').removeClass('hide');
+        }
+
+        /* 전달 확인 버튼 */
+        if (target.classList.contains('check-take-btn')) {
+            fetch(`/api/deal/check/${pdId}`, {
+                method: 'GET'
+            })
+                .then(() => {
+                    return $.get(`/chats/${chatId}`);
+                })
+                .then(data => {
+                    $('#chat-right').html(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        /* 후기 작성 리스트 확인 */
+        if (target.id === 'review-list-btn') {
+            var url = `/deal/${pdId}/reviewlist`;
+            $.get(url, function (data) {
+                $('#chatroom-users-review').html(data);
+            });
+            $('#chatroom-users-review').removeClass('hide');
+        }
+
+        /* 약속 잡기 모달 */
+        if (target.classList.contains('schedule-form-btn')) {
+            $.get(`/deal/schedule/save/${pdId}`, function (data) {
+                $('#chatroom-modal').html(data);
+            });
+            $('#chatroom-modal').removeClass('hide');
+        }
+
+        /* 일정 확인 모달 */
+        if (target.classList.contains('schedule-view-btn')) {
+            console.log("저용?")
+            $.get(`/deal/schedule/${pdId}`, function (data) {
+                $('#chatroom-modal').html(data);
+            });
+            $('#chatroom-modal').removeClass('hide');
+        }
+    });
+
+</script>

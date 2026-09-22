@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout-chat::layout(~{::title}, ~{::#content}, ~{::#upperScript}, ~{::#lowerScript})}">
+<head>
+    <!-- title 작성 위치 -->
+    <title>CHAT</title>
+    <!-- 상단 script 작성 위치 -->
+    <!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#upperScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+    <script th:inline="javascript" id="upperScript">
+        document.addEventListener('DOMContentLoaded', function () {
+            var chatId = /*[[${chatId}]]*/ null;
+
+            if (chatId != null) {
+                // $('#chat-right').html("");
+                var url = `/chats/${chatId}`;
+                $.get(url, function (data) {
+                    $('#chat-right').html(data);
+                });
+            }
+            // $('.chat-link').click(function (event) {
+            //     event.preventDefault();
+            //     $('#chat-right').html("");
+            //     var url = $(this).attr('href');
+            //     $.get(url, function (data) {
+            //         $('#chat-right').html(data);
+            //     });
+            // });
+        });
+    </script>
+</head>
+<body>
+
+<!-- #content 내부에 필요한 html 작성 -->
+<div id="content">
+
+    <!-- chatting start -->
+    <div class="chats-line"></div>
+    <section class="chats container">
+        <!-- left start -->
+        <div class="chats-left">
+            <div class="chats-title">
+                <div class="chats-filter">전체 대화 <i class="fa-solid fa-caret-down"></i>
+                    <ul class="hide">
+                        <li>전체</li>
+                        <li>중고거래</li>
+                        <li>공동구매</li>
+                    </ul>
+                </div>
+                <div class="chats-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" class="chats-search-input" placeholder="닉네임 또는 상품으로 검색하세요">
+                </div>
+            </div>
+
+            <!-- :: chatList -->
+            <div class="chat-list" th:include="chats/_chatList"></div>
+        </div>
+        <!-- left end -->
+
+        <!-- right start -->
+        <div id="chat-right" th:value="${chatId}">
+            <div class="no-chat">
+                <i class="fa-solid fa-comments"></i>
+                <p>채팅방을 선택해주세요!</p>
+            </div>
+        </div>
+        <!-- right end -->
+    </section>
+    <!-- chatting end -->
+</div>
+
+<!-- 하단 script 작성 위치 -->
+<!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#lowerScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+<script src="/js/chats.js" id="lowerScript"></script>
+</body>
+</html>

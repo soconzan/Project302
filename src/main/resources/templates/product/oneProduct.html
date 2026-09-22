@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout::layout(~{::title}, ~{::#content}, ~{::#upperScript}, ~{})}">
+<head>
+    <title th:text="${product.pdName}"></title>
+    <script id="upperScript">
+
+    </script>
+</head>
+<body>
+<div id="content">
+
+    <script src="/js/product.js"></script>
+
+    <section class="one-product container">
+        <div class="one-product-top">
+
+            <div class="one-product-left">
+                <div id="imgContainer">
+                    <div>
+                        <!-- list 형식으로 받아와서 get(0)으로 파일 목록에서 첫번째 파일 id 가져오기-->
+                        <img th:each="file : ${files}" th:if="${file}!=null" th:src="${file}">
+                    </div>
+                    <button class="img-prev"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button class="img-next"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+                <div class="img-count">
+                    <div class="img-count-dot" th:each="file : ${files}"></div>
+                </div>
+            </div>
+
+            <div class="one-product-right">
+                <div class="pd-line">
+                    <p class="pd-stat">중고거래</p>
+                    <span>|</span>
+                    <p th:text="${product.ctgrName}" id="ctgrName"></p>
+                </div>
+
+                <div class="pd-line-ver">
+                    <p class="pd-name" th:text="${product.pdName}"></p>
+                </div>
+
+                <div class="pd-line-ver">
+                    <p class="pd-price" th:text="${product.pdPrice}+ '원'"></p>
+                </div>
+
+                <div class="pd-hr"></div>
+
+                <div class="pd-line-end">
+                    <div class="pd-icon">
+                        <i class="fa-regular fa-heart"></i>
+                        ️<span th:text="${product.likeCount}"></span>
+                    </div>
+                    <div class="pd-icon">
+                        <i class="fa-solid fa-eye"></i>
+                        <span th:text="${product.views}"></span>
+                    </div>
+                    <div class="pd-icon">
+                        <i class="fa-regular fa-clock"></i>
+                        <span th:text="${product.pullUpDate}"></span>
+                    </div>
+                </div>
+
+                <div class="pd-btns">
+                    <th:block th:if="${isOwner}">
+                        <button id="delProduct" class="pd-delete" th:data-pd-id="${product.pdId}">상품 삭제</button>
+                        <button id="updateProduct"><a th:href="@{|/products/updateForm/${product.pdId}|}">상품 수정</a>
+                        </button>
+                    </th:block>
+                    <th:block th:unless="${isOwner}">
+                        <div th:if="${liked}">
+                            <button id="delLike" onclick="delLike()">찜 취소</button>
+                        </div>
+                        <div th:unless="${liked}">
+                            <button id="addLike" onclick="addLike()">찜하기</button>
+                        </div>
+                        <button id="chat"><a th:href="@{|/chats/join/${product.pdId}|}">
+                            채팅걸기
+                        </a></button>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+
+        <div class="pd-hr"></div>
+
+        <div class="one-product-content">
+            <div class="pd-box info">
+                <p class="pd-title">상품 설명</p>
+                <p class="pd-content" th:text="${product.pdContent}"></p>
+            </div>
+
+            <div class="pd-box ottOption">
+                <p class="pd-title">거래 위치</p>
+                <div class="pd-addr">
+                    <!--지도-->
+                    <div id="map"></div>
+                    <p class="pd-detail-addr" th:text="${product.detailAddr}"></p>
+                </div>
+                <!--hidden-->
+                <p th:text="${user.userId}" th:id="logUser" th:hidden="hidden"></p>
+                <p th:text="${product.pdId}" th:id="pdId" th:hidden="hidden"></p>
+                <p th:text="${product.userId}" th:id="userId" th:hidden="hidden"></p>
+                <p th:text="${product.latitude}" th:id="latitude" th:hidden="hidden"></p>
+                <p th:text="${product.longitude}" th:id="longitude" th:hidden="hidden"></p>
+            </div>
+        </div>
+
+        <div class="pd-hr"></div>
+
+        <div class="one-product-user" th:include="product/_sellerInfo"></div>
+
+        <div>
+            <section id="dealReviewsSection" class="profile-reviews">
+                <div th:include="product/_dealReviews"></div>
+            </section>
+        </div>
+        <!--    &lt;!&ndash; 추천 상품 목록 &ndash;&gt;-->
+        <!--    <hr>-->
+        <!--    <div>-->
+        <!--        <h2>추천 상품</h2>-->
+        <!--        <div th:each="recommend : ${recommend}">-->
+        <!--            <p>상품명: <span th:text="${recommend.pdName}"></span></p>-->
+        <!--        </div>-->
+        <!--    </div>-->
+        <!-- 상품 등록자 프로필 정보-->
+
+    </section>
+
+
+<!--    <script type="text/javascript"-->
+<!--            src="//dapi.kakao.com/v2/maps/sdk.js?appkey=4fde2b37795eb370a877d4b9e6093c5e&libraries=services"></script>-->
+    <script>
+        /* ------ 지도 띄우기 ------ */
+        const la = document.getElementById("latitude").innerText;
+        const lo = document.getElementById("longitude").innerText;
+
+        console.log(la);
+        console.log(lo);
+
+        var mapContainer = document.getElementById("map"); // 지도를 표시할 div
+        var mapOption = {
+            center: new kakao.maps.LatLng(Number(la), Number(lo)), // 지도의 중심좌표
+            level: 3 // 지도의 확대 레벨
+        };
+
+
+
+
+        var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+
+        // 마커가 표시될 위치입니다
+        var markerPosition = new kakao.maps.LatLng(Number(la), Number(lo));
+
+        // 마커를 생성합니다
+        var marker = new kakao.maps.Marker({
+            position: markerPosition
+        });
+
+        // 마커가 지도 위에 표시되도록 설정합니다
+        marker.setMap(map);
+
+        /* ------ 찜하기 버튼 클릭 이벤트 ------ */
+        const userId = document.getElementById("userId").innerText;
+        const pdId = document.getElementById("pdId").innerText;
+        const logUser = document.getElementById("logUser").innerText;
+
+        function addLike() {
+            console.log("pdId: " + pdId);
+            console.log("logUser: " + logUser);
+            fetch('/likes/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: logUser,    // 로그인 사용자
+                    likePd: pdId // 상품
+                })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // 성공적으로 찜하기가 완료되었을 때의 처리
+                        console.log('찜하기 성공!');
+                        const addLikeButton = document.getElementById("addLike");
+                        addLikeButton.innerText = "찜 취소";
+                        addLikeButton.setAttribute("onclick", "delLike()"); // 클릭 이벤트 변경
+                        window.location.reload();
+                    } else {
+                        // 찜하기에 실패했을 때의 처리
+                        console.error('찜하기 실패!');
+                    }
+                })
+                .catch(error => {
+                    console.error('오류 발생:', error);
+                });
+        }
+
+        /* ------ 찜취소 버튼 클릭 이벤트 ------ */
+        function delLike() {
+            console.log("pdId: " + pdId);
+            console.log("logUser: " + logUser);
+            fetch('/likes/del', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: logUser, // 로그인 사용자
+                    likePd: pdId    // 상품
+                })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // 성공적으로 찜 삭제가 완료되었을 때의 처리
+                        console.log('찜 삭제 성공!')
+                        const delLikeButton = document.getElementById("delLike");
+                        delLikeButton.innerText = "찜하기";
+                        delLikeButton.setAttribute("onclick", "addLike()"); // 클릭 이벤트 변경
+                        recordInteraction(logUser, pdId, '찜하기');
+                        window.location.reload();
+                    } else {
+                        // 찜 삭제에 실패했을 때의 처리
+                        console.error('찜 삭제 실패!');
+                    }
+                })
+                .catch(error => {
+                    console.error('오류 발생:', error);
+                });
+        }
+
+        /* ------ 상품 삭제 버튼 클릭 이벤트 ------ */
+        document.getElementById("delProduct").addEventListener("click", function () {
+            const pdId = this.getAttribute("data-pd-id");
+            const deleteUrl = `/products/${pdId}/delete`;
+
+            if (confirm('정말로 이 상품을 삭제하시겠습니까?')) {
+                fetch(deleteUrl, {
+                    method: 'DELETE',
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('상품이 삭제되었습니다.');
+                            window.location.href = '/products'; // 상품 목록 페이지로 리디렉션
+                        } else {
+                            alert('상품 삭제에 실패했습니다.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('오류 발생:', error);
+                        alert('상품 삭제 중 오류가 발생했습니다.');
+                    });
+            }
+        });
+        /* ------ 상호작용 기록 ------ */
+        // function recordInteraction(userId, productId, interactionType) {
+        //     fetch('/interaction/record', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify({
+        //             userId: userId,
+        //             pdId: productId,
+        //             interactionType: interactionType
+        //         })
+        //     })
+        //         .then(response => {
+        //             if (response.ok) {
+        //                 console.log('Interaction recorded successfully');
+        //             } else {
+        //                 console.error('Error recording interaction');
+        //             }
+        //         })
+        //         .catch(error => {
+        //             console.error('Network error:', error);
+        //         });
+        // }
+
+    </script>
+</div>
+</body>
+</html>

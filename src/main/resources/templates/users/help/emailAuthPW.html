@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout::layout(~{::title}, ~{::#content}, ~{::#upperScript}, ~{::#lowerScript})}">
+<head>
+    <!-- title 작성 위치 -->
+    <title></title>
+    <!-- 상단 script 작성 위치 -->
+    <!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#upperScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+    <script id="upperScript">
+
+    </script>
+</head>
+<body>
+
+<!-- #content 내부에 필요한 html 작성 -->
+<div id="content">
+    <label for="email">이메일</label>
+    <input type="hidden" id="fullEmail" name="email">
+    <input type="text" name="emailId" id="email">@
+    <input class="box" id="domain-txt" type="text"/>
+    <select class="box" id="domain-list">
+        <option value="type">직접 입력</option>
+        <option value="naver.com">naver.com</option>
+        <option value="google.com">google.com</option>
+        <option value="hanmail.net">hanmail.net</option>
+        <option value="nate.com">nate.com</option>
+        <option value="kakao.com">kakao.com</option>
+        <option value="g.yju.ac.kr">g.yju.ac.kr</option>
+    </select>
+    <button type="button" onclick="emailSend()">보내기</button>
+    <br>
+    <input type="text"name="emailAuthInput" id="emailAuthInput">
+    <button type="button" onclick="emailAuth()">인증</button><br>
+    <h5 id="emailMessage"></h5>
+    <br>
+
+</div>
+
+<!-- 하단 script 작성 위치 -->
+<!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#lowerScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+<script id="lowerScript">
+    function emailSend(){
+        const emailLocalPart = document.getElementById('email').value.trim();
+        const emailDomain = document.getElementById('domain-txt').value.trim();
+        const fullEmail = emailLocalPart + "@" + emailDomain;
+        document.getElementById('fullEmail').value=fullEmail;
+
+        if (fullEmail) {
+            fetch(`/help/mailSend?email=${fullEmail}`, {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        alert("메일이 전송 됐습니다.");
+                    } else {
+                        alert("입력하신 이메일을 찾을 수 없습니다. 다시 한번 확인해주세요.");
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    alert("메일을 전송하는 중 문제가 발생했습니다. 다시 시도해 주세요.");
+                });
+        } else {
+            alert("이메일을 입력해주세요.");
+        }
+    }
+    function emailAuth(){
+        const emailAuth = document.getElementById('emailAuthInput').value;
+        const message = document.getElementById('emailMessage');
+        const emailAuthInput = document.getElementById('emailAuthInput');
+
+
+        if (emailAuth) {
+            fetch(`/help/mailCheck?emailAuth=${emailAuth}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.email) {
+
+                        window.location.replace(`/help/passwordChange?localId=${data.localId}`)
+
+                    } else {
+                        // alert("인증번호가 일치하지 않습니다.");
+                        message.textContent = '인증번호가 일치하지 않습니다.';
+                        message.style.color = 'red';
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    alert("문제가 발생했습니다. 다시 시도해 주세요.");
+                });
+        } else {
+            alert("인증번호를 입력해주세요.");
+        }
+
+
+    }
+
+</script>
+</body>
+</html>

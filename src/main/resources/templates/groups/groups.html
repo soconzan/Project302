@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout-chat::layout(~{::title}, ~{::#content}, ~{}, ~{})}">
+<head>
+    <!-- title 작성 위치 -->
+    <title>공구 전체 조회</title>
+    <!-- 상단 script 작성 위치 -->
+    <!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#upperScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+    <script id="upperScript">
+
+    </script>
+</head>
+<body>
+
+<!-- #content 내부에 필요한 html 작성 -->
+<div id="content">
+    <section class="groups">
+        <div class="groups-top">
+            <div class="filter-select-list">
+                <a th:href="@{/groups/ott}" id="groups-ott-btn">OTT팟 구하기 <i class="fa-solid fa-caret-right"></i></a>
+
+                <div class="groups-filter">
+                    <select id="categoryFilter" name="ctgr_id" onchange="applyFilters()" class="products-filter-select">
+                        <option value="">카테고리</option>
+                        <option th:each="category : ${categories}" th:unless="${category.ctgrId == 12}"
+                                th:value="${category.ctgrId}"
+                                th:text="${category.ctgrName}"></option>
+                    </select>
+                    <select id="sortingFilter" name="sub_filter" onchange="applyFilters()"
+                            class="products-filter-select">
+                        <option value="creat_date">최근등록순</option>
+                        <option value="views">인기많은순</option>
+                        <option value="clos_date">마감순</option>
+                        <option value="chat_count">참여자순</option>
+                    </select>
+                    <div class="groups-search">
+                        <input type="text" name="keyword" id="keyword" placeholder="상품을 검색하세요">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="groups-content">
+            <!-- 공구 지도 -->
+            <div class="groups-left">
+                <th:block th:insert="groups/_map"></th:block>
+                <div id="ott" class="hide" th:insert="groups/ott"></div>
+            </div>
+
+            <!-- 공구 리스트 -->
+            <div class="groups-right" th:insert="groups/_groupList">
+
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // 이 위치에서 다시 검색 누르면 바뀌기
+        document.getElementById('recenterButton').addEventListener('click', function () {
+            var center = map.getCenter();
+            var centerLat = center.getLat();
+            var centerLng = center.getLng();
+
+            // 마커 제거
+            clearMarkers();
+
+            // 새로운 위치 기준으로 마커 생성
+            for (var i = 0; i <= 20; i++) {
+                var latitudeElement = document.getElementById("latitude" + i);
+                var longitudeElement = document.getElementById("longitude" + i);
+                var pdNameElement = document.getElementById("pdName" + i);
+                var fileElement = document.getElementById("file" + i);
+
+                if (latitudeElement && longitudeElement && pdNameElement && fileElement) {
+                    var la = parseFloat(latitudeElement.innerText);
+                    var lo = parseFloat(longitudeElement.innerText);
+                    var markerPosition = new kakao.maps.LatLng(la, lo);
+
+                    var distance = getDistance(centerLat, centerLng, la, lo);
+                    if (distance <= 1000) {
+                        var pdName = pdNameElement.innerText;
+                        var file = fileElement.src;
+                        var marker = createMarker(markerPosition, pdName, file);
+                        markers.push(marker); // 새로운 마커 배열에 추가
+                    }
+                }
+            }
+        });
+
+        // 페이지네이션(페이지 눌렀을 때 실행)
+        function loadPage(page) {
+            var center = map.getCenter();
+            var centerLat = center.getLat();
+            var centerLng = center.getLng();
+            const sort = document.getElementById("sortingFilter").value;
+            const ctgrId = document.getElementById("categoryFilter").value;
+            const search = document.querySelector(".search").value;
+            var groupRight = document.querySelector('.groups-right');
+
+            var newURL = "/groups?page=" + page + "&latitude=" + centerLat + "&longitude=" + centerLng + "&distance=" + 1 + "&ctgr_id=" + ctgrId + "&sort=" + sort + "&search=" + search;
+            history.pushState({page: page}, "title 1", newURL);
+
+            $.ajax({
+                url: newURL,
+                method: 'GET',
+                success: function (response) {
+                    var $response = $(response);
+                    var $content = $response.find('.groups-content')
+                    // console.log($content[0].innerHTML)
+                    // 새로운 데이터를 받아왔을 때
+                    console.log(markers.length + "엥")
+                    if (markers.length === 0) {
+                        groupRight.innerHTML = '';
+                    } else {
+                        groupRight.innerHTML = $response[0].innerHTML;
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("실패", error);
+                }
+            });
+        }
+
+        document.getElementById('recenterButton').addEventListener('click', function () {
+            loadPage(0);
+        });
+
+
+    </script>
+</div>
+
+<!-- 하단 script 작성 위치 -->
+<!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#lowerScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+<script id="lowerScript">
+
+</script>
+</body>
+</html>

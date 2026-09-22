@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<th:block sec:authorize="isAnonymous()">
+    <a th:href="@{/users/join}">회원가입</a>
+    <a th:href="@{/users/signin}">들어가기</a>
+</th:block>
+<th:block sec:authorize="isAuthenticated()">
+    <form th:action="@{/signout}" method="post">
+        <label sec:authentication="name"></label>
+        <input type="submit" value="나가기">
+    </form>
+</th:block>
+
+<p th:object="${user}"></p>
+로그인 실패
+</body>
+</html>

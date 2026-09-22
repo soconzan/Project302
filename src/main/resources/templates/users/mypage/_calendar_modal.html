@@ -1,0 +1,14 @@
+<div class="modal-content">
+    <span class="close" id="closeEventDetailsModal">&times;</span>
+    <h2 id="eventTitle"></h2>
+    <img src="${product.fileLink}" id="eventImage" alt="상품 사진">
+    <p><strong>가격:</strong> <span id="eventPrice"></span></p>
+    <p><a id="eventUrl">상품 상세 보기</a></p>
+    <p><strong>날짜:</strong> <span id="eventDate"></span></p>
+    <p><strong>시간:</strong> <span id="eventTime"></span></p>
+    <p><strong>장소:</strong> <span id="eventLocation"></span></p>
+    <div id="map" style="width:500px; height:300px;"></div>
+</div>
+
+<script type="text/javascript"
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=b7f3729f18428af75c37169adab87eaa&libraries=services"></script>

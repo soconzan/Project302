@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout::layout(~{::title}, ~{::#content}, ~{::#upperScript}, ~{})}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>중고/공동구매 검색</title>
+    <script id="upperScript"></script>
+</head>
+<body>
+<div id="content">
+
+    <p class="main-search-title">검색 결과</p>
+
+    <section class="main-search container">
+        <p class="search-title">중고거래</p>
+        <div th:insert="~{search/_searchProduct}"></div>
+    </section>
+    <div class="pd-hr container"></div>
+    <section class="main-search container">
+        <p class="search-title">공동구매</p>
+        <div th:insert="~{search/_searchGroup}"></div>
+    </section>
+    <div class="pd-hr container"></div>
+    <section class="main-search container">
+        <p class="search-title">OTT팟</p>
+        <div th:insert="~{search/_searchOtt}"></div>
+    </section>
+</div>
+</body>
+</html>

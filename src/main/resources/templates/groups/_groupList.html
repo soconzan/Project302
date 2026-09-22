@@ -1,0 +1,228 @@
+<div id="pageSize" th:with="
+                        pageNumber = ${groups.pageable.pageNumber},
+                        pageSize = ${groups.pageable.pageSize},
+                        totalPages = ${groups.totalPages},
+                        startPage = ${T(java.lang.Math).floor(pageNumber / pageSize) * pageSize + 1},
+                        tempEndPage = ${startPage + pageSize - 1},
+                        endPage = (${tempEndPage < totalPages ? tempEndPage : totalPages})">
+    <!--
+        <p>페이지 번호: <span th:text="${pageNumber}"></span></p>
+        <p>페이지 크기: <span th:text="${pageSize}"></span></p>
+        <p>전체 페이지 수: <span th:text="${totalPages}"></span></p>
+        <p>시작 페이지: <span th:text="${startPage}"></span></p>
+        <p>임시 끝 페이지: <span th:text="${tempEndPage}"></span></p>
+        <p>끝 페이지: <span th:text="${endPage}"></span></p>
+    -->
+
+    <!-- 상품페이지 링크 -->
+
+    <div class="group-list">
+        <a th:each="group, num : ${groups}"
+           th:href="@{/groups/{pd_id}(pd_id=${group.pdId})}" class="group-item">
+            <div class="group-thumbnail">
+                <!-- 상품 대표 사진 -->
+                <img th:if="${group.fileId}!=null" th:src="${group.fileId}"
+                     th:id="'file' + ${num.index}"
+                     alt="picture">
+            </div>
+            <div class="group-info">
+                <div class="group-info-top">
+                    <p class="group-title" th:text="${group.pdName}" th:id="'pdName' + ${num.index}"></p>
+                    <p th:text="${group.pullUpDate}" class="group-date" id="pullUp"></p>
+                </div>
+                <!--글 아이디-->
+                <p th:text="${group.pdId}" th:id="'pdId' + ${num.index}" style="display: none"></p>
+                <!--카테고리-->
+                <p th:text="${group.ctgrName}" th:id="ctgr" th:hidden="hidden"></p>
+                <!--글의 좌표-->
+                <p th:text="${group.latitude}" th:id="'latitude' + ${num.index}" th:hidden="hidden"></p>
+                <p th:text="${group.longitude}" th:id="'longitude' + ${num.index}"
+                   th:hidden="hidden"></p>
+                <!--가격 최소~최대-->
+                <p th:text="${group.roundYn}" th:id="'roundYn' + ${num.index}" th:hidden="hidden"></p>
+
+                <!--content(hidden)-->
+                <p th:text="${group.pdContent}" th:id="'pdContent' + ${num.index}" hidden="hidden"></p>
+                <p class="group-price" th:id="priceRange" th:text="${group.priceRange}"></p>
+            </div>
+            <div class="group-current">
+                <p class="group-d-day c-red" th:text="${group.closDate}" th:id="closDate"></p>
+                <p class="group-headcount" th:id="people"
+                   th:text="'(' + ${group.chatCount} + '/' + ${group.maxPeople} + ')'"></p>
+            </div>
+        </a>
+    </div>
+    <!-- 페이지네이션 -->
+    <div class="pagination">
+        <ul>
+            <li th:classappend="${groups.first} ? 'disabled'">
+                <a th:if="${groups.first != null}" th:onclick="'loadPage(' + (${pageNumber - 1}) + ')'">
+                    <span aria-hidden="true"><i class="fa-solid fa-angle-left"></i></span>
+                </a>
+            </li>
+
+            <li th:each="page: ${#numbers.sequence(startPage, totalPages)}"
+                th:classappend="${page == pageNumber - 1} ? 'active'">
+                <a th:text="${page}" th:onclick="'loadPage(' + (${page - 1}) + ')'"></a><!-- -->
+            </li>
+
+            <li th:classappend="${groups.last} ? 'disabled'">
+                <a th:if="${groups.last != null}" th:onclick="'loadPage(' + (${pageNumber} + 1) + ')'">
+                    <span aria-hidden="true"><i class="fa-solid fa-angle-right"></i></span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+<script>
+    // // "이 위치에서 다시 검색" 버튼 클릭 이벤트
+    // document.getElementById('recenterButton').addEventListener('click', function () {
+    //     var center = map.getCenter();
+    //     var centerLat = center.getLat();
+    //     var centerLng = center.getLng();
+    //     const sort = document.getElementById("sortingFilter").value;
+    //     const ctgrId = document.getElementById("categoryFilter").value;
+    //     const search = document.querySelector(".search").value;
+    //     var groupRight = document.querySelector('.groups-right');
+    //
+    //     // 원의 위치를 지도의 새 중심 위치로 업데이트합니다.
+    //     circle.setPosition(new kakao.maps.LatLng(centerLat, centerLng));
+    //
+    //     // // AJAX 요청을 보내기 전에 새 URL을 생성하고 브라우저 히스토리에 추가합니다.
+    //     var newURL = "/groups?page=0&latitude=" + centerLat + "&longitude=" + centerLng + "&distance=" + 1 + "&ctgr_id=" + ctgrId + "&sort=" + sort + "&search=" + search;
+    //     history.pushState({
+    //         page: page,
+    //         latitude: centerLat,
+    //         longitude: centerLng,
+    //         distance: 1,
+    //         ctgrId: ctgrId,
+    //         sort: sort,
+    //         search: search
+    //     }, "title 1", newURL);
+    //
+    //     $.ajax({
+    //         url: '/groups?page=0&latitude=' + centerLat + '&longitude=' + centerLng + "&distance=" + 1 + "&ctgr_id=" + ctgrId + "&sort=" + sort+ "&search=" + search,
+    //         method: 'GET',
+    //         success: function (response) {
+    //             var $response = $(response);
+    //             // jquery로 특정 클래스 찾기
+    //             var $content = $response.find('.groups-content')
+    //             console.log(response)
+    //
+    //             groupRight.innerHTML = $response[0].innerHTML;
+    //
+    //             upMoney();
+    //         },
+    //         error: function (xhr, status, error) {
+    //             console.error("실패", error);
+    //         }
+    //     })
+    // });
+
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const searchInput = document.getElementById('keyword');
+        searchInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                applyFilters();
+            }
+        });
+    });
+
+    function applyFilters(page = 0) {
+        var center = map.getCenter();
+        var centerLat = center.getLat();
+        var centerLng = center.getLng();
+        var groupRight = document.querySelector('.groups-right');
+        const sort = document.getElementById("sortingFilter").value;
+        const ctgrId = document.getElementById("categoryFilter").value;
+        const keyword = document.querySelector("#keyword").value;
+        console.log(keyword)
+        console.log(ctgrId + "카테고리")
+
+        // 원의 위치를 지도의 새 중심 위치로 업데이트합니다.
+        circle.setPosition(new kakao.maps.LatLng(centerLat, centerLng));
+
+        // 필터 상태를 저장
+        const filters = {
+            page: page,  // 페이지 번호가 1보다 작을 경우 1로 설정
+            latitude: centerLat,
+            longitude: centerLng,
+            distance: 1,
+            ctgrId: ctgrId,
+            sorting: sort,
+            keyword: keyword,
+        };
+        saveFilters(filters);
+
+        // 검색어 인코딩
+        const encodedSearch = encodeURIComponent(keyword);
+
+        // // AJAX 요청을 보내기 전에 새 URL을 생성하고 브라우저 히스토리에 추가합니다.
+        var newURL = '/groups?page=' + page + '&latitude=' + centerLat + '&longitude=' + centerLng + "&distance=" + 1 + "&ctgr_id=" + ctgrId + "&sort=" + sort + "&keyword=" + encodedSearch;
+        history.pushState({
+            page: page,
+            latitude: centerLat,
+            longitude: centerLng,
+            distance: 1,
+            ctgrId: ctgrId,
+            sort: sort,
+            keyword: keyword
+        }, "title 1", newURL);
+        // 필터링 동작
+        $.ajax({
+            url: '/groups?page=' + page + '&latitude=' + centerLat + '&longitude=' + centerLng + "&distance=" + 1 + "&ctgr_id=" + ctgrId + "&sort=" + sort + "&keyword=" + keyword,
+            method: 'GET',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            success: function (response) {
+                var $response = $(response);
+                // jquery로 특정 클래스 찾기
+                console.log($response[0].innerHTML)
+
+                groupRight.innerHTML = $response[0].innerHTML;
+
+                // upMoney();
+                // history.pushState(filters, null, newURL);
+            },
+            error: function (xhr, status, error) {
+                console.error("실패", error);
+            }
+        })
+    }
+
+    /**
+     필터 저장 함수
+     **/
+    function saveFilters(filters) {
+        sessionStorage.setItem('filters', JSON.stringify(filters));
+    }
+
+    // 원의 위치 저장 함수
+    function saveCirclePosition(center) {
+        sessionStorage.setItem('circlePosition', JSON.stringify({
+            lat: center.getLat(),
+            lng: center.getLng()
+        }));
+    }
+
+    /**
+     필터 상태 복원 함수
+     **/
+    function restoreFilters() {
+        const filters = JSON.parse(sessionStorage.getItem('filters'));
+        if (filters) {
+            document.getElementById("categoryFilter").value = filters.ctgrId || '';
+            document.getElementById("sortingFilter").value = filters.sorting || 'creat_date';
+            applyFilters(filters.page || 1);  // 페이지 로드 시 필터 상태 복원 후 즉시 적용
+        } else {
+            applyFilters();  // 필터가 저장되지 않은 경우 전체 조회 수행
+        }
+    }
+
+    function changePage(page) {
+        applyFilters(page);
+    }
+
+    // 아래 코드는 지도 위의 마커를 제거하는 코드입니다
+    // marker.setMap(null);
+</script>

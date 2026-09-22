@@ -1,0 +1,9 @@
+<div class="profile-detail-review-list">
+    <div th:if="${#lists.isEmpty(detailReviews)}">리뷰가 없어용 ㅜ.ㅜ</div>
+    <div class="detail-review-item" th:each="detail : ${detailReviews}">
+        <p th:text="${detail.nickname}"></p>
+        <p th:text="${detail.pdName}"></p>
+        <p th:text="${detail.detailReview}"></p>
+        <p th:text="${detail.creatDate}"></p>
+    </div>
+</div>

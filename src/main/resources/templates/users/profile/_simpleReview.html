@@ -1,0 +1,33 @@
+<div class="profile-review-grades" th:text="${simpleReview.grades}"></div>
+<div class="profile-review-score" th:text="${simpleReview.score}"></div>
+
+<div class="profile-simple-review-list">
+    <div class="simple-review-item" th:if="${simpleReview.simpleReviews[0] > 0}">
+        <span>친절하고 배려가 넘쳐요</span>
+        <span th:text="${simpleReview.simpleReviews[0]}"></span>
+    </div>
+    <div class="simple-review-item" th:if="${simpleReview.simpleReviews[1] > 0}">
+        <span>응답이 빨라요</span>
+        <span th:text="${simpleReview.simpleReviews[1]}"></span>
+    </div>
+    <div class="simple-review-item" th:if="${simpleReview.simpleReviews[2] > 0}">
+        <span>시간 약속을 잘 지켜요</span>
+        <span th:text="${simpleReview.simpleReviews[2]}"></span>
+    </div>
+    <div class="simple-review-item" th:if="${simpleReview.simpleReviews[3] > 0}">
+        <span>상품 설명이 자세해요</span>
+        <span th:text="${simpleReview.simpleReviews[3]}"></span>
+    </div>
+    <div class="simple-review-item" th:if="${simpleReview.simpleReviews[4] > 0}">
+        <span>좋은 상품을 저렴하게 구했어요</span>
+        <span th:text="${simpleReview.simpleReviews[4]}"></span>
+    </div>
+    <div class="simple-review-item" th:if="${simpleReview.simpleReviews[5] > 0}">
+        <span>무리한 네고를 하지 않아요</span>
+        <span th:text="${simpleReview.simpleReviews[5]}"></span>
+    </div>
+    <div class="simple-review-item" th:if="${simpleReview.simpleReviews[6] > 0}">
+        <span>제가 있는 곳까지 와서 거래했어요</span>
+        <span th:text="${simpleReview.simpleReviews[6]}"></span>
+    </div>
+</div>

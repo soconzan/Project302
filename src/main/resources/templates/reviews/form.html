@@ -1,0 +1,105 @@
+<!-- 작성한 리뷰 슬쩍 -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout::layout(~{::title}, ~{::#content}, ~{::#upperScript}, ~{::#lowerScript})}">
+<head>
+    <!-- title 작성 위치 -->
+    <title></title>
+    <!-- 상단 script 작성 위치 -->
+    <!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#upperScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+    <script id="upperScript">
+
+    </script>
+</head>
+<body>
+
+<!-- #content 내부에 필요한 html 작성 -->
+<div id="content">
+
+    <section class="container review-create">
+        <p th:text="${receiver.reviewType.name() == 'BUY' ? '구매 후기 작성' : '판매 후기 작성'}"
+           class="title"></p>
+
+        <div class="review-receiver-info">
+            <div class="review-receiver-profile">
+                <img th:if="${receiver.userFileLink}!=null" th:src="${receiver.userFileLink}">
+            </div>
+            <p><span th:text="${receiver.nickname}"></span> 님과의 거래는 어떠셨나요?</p>
+        </div>
+
+        <div class="review-product">
+            <div class="review-product-thumbnail">
+                <img th:if="${product.fileLink}!=null" th:src="${product.fileLink}">
+            </div>
+            <div class="review-product-info">
+                <p class="review-product-name">
+                    <span th:text="${product.pdName}"></span>
+                <p class="review-product-price"
+                   th:text="${product.pdStatus.name() == 'GROUP' ? product.priceRange : product.pdPrice + '원'}"></p>
+            </div>
+        </div>
+
+        <!-- 후기 작성 폼 -->
+        <form th:action="@{/review}" method="POST" class="review-form">
+            <!-- hidden input -->
+            <input type="hidden" name="pdId" th:value="${product.pdId}">
+            <input type="hidden" name="receiverId" th:value="${receiver.userId}">
+            <input type="hidden" name="reviewType" th:value="${receiver.reviewType.name()}">
+
+            <div class="review-form-box">
+                <div class="review-form-input">
+                    <!-- 동일 항목 -->
+                    <div class="review-form-label">
+                        <input type="checkbox" name="simpleReviews" id="sr-1" value="1">
+                        <label for="sr-1">친절하고 배려가 넘쳐요</label>
+                    </div>
+                    <div class="review-form-label">
+                        <input type="checkbox" name="simpleReviews" id="sr-10" value="10">
+                        <label for="sr-10">응답이 빨라요</label>
+                    </div>
+                    <div class="review-form-label">
+                        <input type="checkbox" name="simpleReviews" id="sr-100" value="100">
+                        <label for="sr-100">시간 약속을 잘 지켜요</label>
+                    </div>
+
+                    <!-- 구매자 항목 -->
+                    <th:block th:if="${receiver.reviewType.name() == 'BUY'}">
+                        <div class="review-form-label">
+                            <input type="checkbox" name="simpleReviews" id="sr-1000" value="1000">
+                            <label for="sr-1000">상품 설명이 자세해요</label>
+                        </div>
+                        <div class="review-form-label">
+                            <input type="checkbox" name="simpleReviews" id="sr-10000" value="10000">
+                            <label for="sr-10000">좋은 상품을 저렴하게 구했어요</label>
+                        </div>
+                    </th:block>
+                    <!-- 판매자 항목 -->
+                    <th:block th:if="${receiver.reviewType.name() == 'SELL'}">
+                        <div class="review-form-label">
+                            <input type="checkbox" name="simpleReviews" id="sr-100000" value="100000">
+                            <label for="sr-100000">무리한 네고를 하지 않아요</label>
+                        </div>
+                        <div class="review-form-label">
+                            <input type="checkbox" name="simpleReviews" id="sr-1000000" value="1000000">
+                            <label for="sr-1000000">제가 있는 곳까지 와서 거래했어요</label>
+                        </div>
+                    </th:block>
+                </div>
+
+                <textarea id="detail-review" name="detailReview" placeholder="더 자세한 후기를 알려주세요!"></textarea>
+            </div>
+
+            <input type="submit" value="후기 보내기">
+        </form>
+    </section>
+
+</div>
+
+<!-- 하단 script 작성 위치 -->
+<!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#lowerScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+<script id="lowerScript">
+
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!-- 상품페이지 링크 -->
+<div class="main-group-list">
+    <a th:each="group, num : ${groups}" th:if="${num.index} < 6"
+       th:href="@{/groups/{pd_id}(pd_id=${group.pdId})}" class="group-item">
+        <div class="group-thumbnail">
+            <!-- 상품 대표 사진 -->
+            <img th:if="${group.fileId}!=null" th:src="${group.fileId}"
+                 th:id="'file' + ${num.index}"
+                 alt="picture">
+        </div>
+        <div class="group-info">
+            <!--글 아이디-->
+            <p th:text="${group.pdId}" th:id="'pdId' + ${num.index}" style="display: none"></p>
+            <!--카테고리-->
+            <p th:text="${group.ctgrName}" th:id="ctgr" th:hidden="hidden"></p>
+            <!--글의 좌표-->
+            <p th:text="${group.latitude}" th:id="'latitude' + ${num.index}" th:hidden="hidden"></p>
+            <p th:text="${group.longitude}" th:id="'longitude' + ${num.index}"
+               th:hidden="hidden"></p>
+            <div class="group-info-top">
+                <p class="group-title" th:text="${group.pdName}" th:id="'pdName' + ${num.index}"></p>
+                <p th:text="${group.pullUpDate}" id="pullUp" class="group-date"></p>
+            </div>
+            <!--가격 최소~최대-->
+            <p th:text="${group.roundYn}" th:id="'roundYn' + ${num.index}" th:hidden="hidden"></p>
+            <!--                <p class="group-price" th:text="${group.pdPrice/group.maxPeople}"-->
+            <!--                   th:id="'minP' + ${num.index}" style="display: none;"></p>-->
+            <!--                <p class="group-price" th:text="${group.pdPrice/group.minPeople}"-->
+            <!--                   th:id="'maxP' + ${num.index}" style="display: none;"></p>-->
+
+            <!--content(hidden)-->
+            <p th:text="${group.pdContent}" th:id="'pdContent' + ${num.index}" hidden="hidden"></p>
+            <p class="group-price" th:id="priceRange" th:text="${group.priceRange}"></p>
+
+        </div>
+        <div class="group-current">
+            <p class="group-d-day c-red" th:text="${group.closDate}" th:id="closDate"></p>
+            <p class="group-headcount" th:id="people"
+               th:text="'(' + ${group.chatCount} + '/' + ${group.maxPeople} + ')'"></p>
+        </div>
+    </a>
+</div>

@@ -1,0 +1,55 @@
+<div class="search-empty"  th:if="${ottsEmpty}">
+    찾으시는 OTT팟 상품 결과가 없습니다
+</div>
+<div class="search-not-empty" th:unless="${ottsEmpty}">
+
+    <div class="product-list" th:each="ott, num : ${otts}">
+        <a th:href="@{/groups/{pd_id}(pd_id=${ott.pdId})}" class="main-ott-item">
+            <div class="product-info">
+                <!--가격 최소~최대-->
+                <p th:text="${ott.roundYn}" th:id="'roundYn' + ${num.index}" th:hidden="hidden"></p>
+                <p class="product-price" th:text="${ott.pdPrice/ott.maxPeople}"
+                   th:id="'minP' + ${num.index}" style="display: none;"></p>
+                <p class="product-price" th:text="${ott.pdPrice/ott.minPeople}"
+                   th:id="'maxP' + ${num.index}" style="display: none;"></p>
+                <p class="product-title" th:text="${ott.pdName}" th:id="'pdName' + ${num.index}"></p>
+                <!--content(hidden)-->
+                <p th:text="${ott.pdContent}" th:id="'pdContent' + ${num.index}" hidden="hidden"></p>
+                <p class="ott-price" th:id="'newPrice' + ${num.index}"
+                   th:text="${ott.pdPrice/ott.maxPeople} + '~' + ${ott.pdPrice/ott.minPeople}"></p>
+                <p th:text="${ott.closDate}" th:id="closDate"></p>
+                <p th:id="people"
+                   th:text="'(' + ${ott.chatCount} + '/' + ${ott.maxPeople} + ')'"></p>
+                <p th:text="${ott.pullUpDate}" id="pullUp"></p>
+            </div>
+        </a>
+    </div>
+
+    <button class="search-more" th:onclick="|location.href='@{/groups/ott?page=0(keyword=${keyword})}'|">더보기</button>
+</div>
+<script>
+    // 처음에 적용
+    document.addEventListener("DOMContentLoaded", function () {
+        // 페이지 로드 시에도 실행
+        upMoney();
+    });
+
+    // 십의 자리 올리기 함수
+    function upMoney() {
+        for (var i = 0; i <= 20; i++) {
+            var minP = document.querySelector("#minP" + i).textContent;
+            var maxP = document.querySelector("#maxP" + i).textContent;
+            var roundYn = document.querySelector("#roundYn" + i).textContent;
+            if (roundYn === 'true') {
+                // 형 변환
+                Number(minP);
+                Number(maxP);
+                // 십의 자리 올리기
+                minP = Math.ceil(minP / 100) * 100;
+                maxP = Math.ceil(maxP / 100) * 100;
+                document.getElementById("newPrice" + i).innerHTML = '최소 ' + minP + '~' + '최대 ' + maxP;
+            }
+            document.getElementById("newPrice" + i).innerHTML = '최소 ' + minP + '~' + '최대 ' + maxP;
+        }
+    }
+</script>

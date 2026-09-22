@@ -1,0 +1,62 @@
+<div id="chatroom-users-top">
+    <p id="chatroom-users-title">대화상대</p>
+    <button id="chatroom-users-close">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+</div>
+
+<div id="chatroom-users-list">
+    <!-- 내 정보 ㅇ.< -->
+    <div class="chatroom-users-item">
+        <div class="item-profile">
+            <img th:if="${user.userFileLink != null}" th:src="${user.userFileLink}">
+        </div>
+        <p class="item-nickname">
+            <span th:text="${user.nickname}"></span>
+            <span th:if="${user.userId == product.userId}"><i class="fa-solid fa-star"></i></span>
+        </p>
+    </div>
+
+    <!-- 다른 사람 정보 >.ㅇ -->
+    <div class="chatroom-users-item" th:each="partUser : ${partUsers}">
+        <div class="item-profile">
+            <img th:if="${partUser.userFileLink != null}" th:src="${partUser.userFileLink}">
+        </div>
+        <p class="item-nickname">
+            <span th:text="${partUser.nickname}"></span>
+            <span th:if="${partUser.userId == product.userId}"><i class="fa-solid fa-star"></i></span>
+        </p>
+    </div>
+</div>
+
+<div id="chatroom-users-bottom">
+    <button class="chatroom-users-btn">
+        <i class="fa-regular fa-bell-slash"></i>
+        <span>채팅방 알림 끄기</span>
+    </button>
+    <button th:if="${product.dealStatus.getValue() != 2 || (user.userId != product.userId && product.pdStatus.name() != 'GROUP')}"
+            class="chatroom-users-btn" id="quit-btn">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>채팅방 나가기</span>
+    </button>
+</div>
+
+<!-- 버튼  처리 시작 -->
+<script defer>
+    $(document).ready(function () {
+        $('#chatroom-users').on('click', '#chatroom-users-close', function (event) {
+            $('#chatroom-users').addClass('hide');
+            $('#chatroom-cover').addClass('hide');
+        });
+    });
+
+    document.querySelector('#chatroom-users').addEventListener('click', function (event) {
+        var quitButton = document.getElementById('quit-btn');
+
+        quitButton.addEventListener('click', function () {
+            window.location.href = '/chats/quit/' + chatId;
+        });
+    });
+
+</script>
+<!-- 버튼 처리 끝 -->

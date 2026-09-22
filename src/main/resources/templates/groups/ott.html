@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout::layout(~{::title}, ~{::#content}, ~{::#upperScript}, ~{::#lowerScript})}">
+<head>
+    <!-- title 작성 위치 -->
+    <title></title>
+    <!-- 상단 script 작성 위치 -->
+    <!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#upperScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+    <script id="upperScript">
+
+    </script>
+</head>
+<body>
+
+<!-- #content 내부에 필요한 html 작성 -->
+<div id="content">
+
+    <section class="otts container">
+        <div class="ott-top">
+            <h4>OTT</h4>
+            <a th:href="@{/groups}" id="groups-ott-btn">공동구매 보러가기 <i class="fa-solid fa-caret-right"></i></a>
+        </div>
+
+        <div class="ott-content">
+            <div class="ott-left ottPic">
+                <button><img src="https://hailmarybc.s3.ap-northeast-2.amazonaws.com/logo-disneyplus.png"
+                             data-search="디즈니플러스"/>
+                </button>
+                <button><img src="https://hailmarybc.s3.ap-northeast-2.amazonaws.com/logo-coupangplay.png"
+                             data-search="쿠팡플레이"/>
+                </button>
+                <button><img src="https://hailmarybc.s3.ap-northeast-2.amazonaws.com/logo-netflix.png"
+                             data-search="넷플릭스"/>
+                </button>
+                <button><img src="https://hailmarybc.s3.ap-northeast-2.amazonaws.com/logo-tving.png" data-search="티빙"/>
+                </button>
+                <button><img src="https://hailmarybc.s3.ap-northeast-2.amazonaws.com/logo-watcha.png" data-search="왓챠"/>
+                </button>
+                <button><img src="https://hailmarybc.s3.ap-northeast-2.amazonaws.com/logo-wavve.png" data-search="웨이브"/>
+                </button>
+            </div>
+            <div class="ott-right">
+                <div id="pageSize" th:if="${otts != null}" th:with="
+                        ottNumber = ${otts.pageable.pageNumber},
+                        ottSize = ${otts.pageable.pageSize},
+                        ottTotalPages = ${otts.totalPages},
+                        ottStartPage = ${T(java.lang.Math).floor(ottNumber / ottSize) * ottSize + 1},
+                        ottTempEndPage = ${ottStartPage + ottSize - 1},
+                        ottEndPage = (${ottTempEndPage < ottTotalPages ? ottTempEndPage : ottTotalPages})">
+
+                    <!-- 상품페이지 링크 -->
+
+                    <div class="ott-group-list">
+                        <a  th:each="ott, num : ${otts}"
+                                th:href="@{/groups/{pd_id}(pd_id=${ott.pdId})}" class="group-item">
+                            <div class="group-info">
+                                <!--카테고리-->
+                                <p th:text="${ott.ctgrName}" th:id="ctgr" th:hidden="hidden"></p>
+                                <!--가격 최소~최대-->
+                                <p th:text="${ott.roundYn}" th:id="'roundYn' + ${num.index}" th:hidden="hidden"></p>
+                                <p class="group-price" th:text="${ott.pdPrice/ott.maxPeople}"
+                                   th:id="'minP' + ${num.index}" style="display: none;"></p>
+                                <p class="group-price" th:text="${ott.pdPrice/ott.minPeople}"
+                                   th:id="'maxP' + ${num.index}" style="display: none;"></p>
+
+                                <!--content(hidden)-->
+                                <p th:text="${ott.pdContent}" th:id="'pdContent' + ${num.index}" hidden="hidden"></p>
+                                <div class="group-info-top">
+                                    <p class="group-title" th:text="${ott.pdName}" th:id="'pdName' + ${num.index}"></p>
+                                    <p th:text="${ott.pullUpDate}" id="pullUp" class="group-date"></p>
+                                </div>
+                                <p class="group-price" th:id="'newPrice' + ${num.index}"
+                                   th:text="${ott.pdPrice/ott.maxPeople} + '~' + ${ott.pdPrice/ott.minPeople}"></p>
+                            </div>
+                            <div class="group-current">
+                                <p class="group-d-day c-red" th:text="${ott.getDDay()}" th:id="dDay"></p>
+                                <p class="group-headcount" th:id="people"
+                                   th:text="'(' + ${ott.chatCount} + '/' + ${ott.maxPeople} + ')'"></p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- 페이지네이션 -->
+                    <div class="pagination">
+                        <ul>
+                            <li th:classappend="${otts.first} ? 'disabled'">
+                                <a th:if="${otts.first != null}" th:onclick="'loadPage(' + (${ottNumber} - 1) + ')'">
+                                    <span aria-hidden="true"><i class="fa-solid fa-angle-left"></i></span>
+                                </a>
+                            </li>
+
+                            <li th:each="page: ${#numbers.sequence(ottStartPage, ottTotalPages)}"
+                                th:classappend="${page == ottNumber + 1} ? 'active'">
+                                <a th:text="${page}" th:onclick="'loadPage(' + (${page} - 1) + ')'"></a>
+                            </li>
+
+                            <li th:classappend="${otts.last} ? 'disabled'">
+                                <a th:if="${otts.last != null}" th:onclick="'loadPage(' + (${ottNumber} + 1) + ')'">
+                                    <span aria-hidden="true"><i class="fa-solid fa-angle-right"></i></span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <script>
+            // 처음에 적용
+            document.addEventListener("DOMContentLoaded", function () {
+                // 페이지 로드 시에도 실행
+                upMoney();
+            });
+
+            // 십의 자리 올리기 함수
+            function upMoney() {
+                for (var i = 0; i <= 20; i++) {
+                    var minP = document.querySelector("#minP" + i).textContent;
+                    var maxP = document.querySelector("#maxP" + i).textContent;
+                    var roundYn = document.querySelector("#roundYn" + i).textContent;
+                    if (roundYn === 'true') {
+                        // 형 변환
+                        Number(minP);
+                        Number(maxP);
+                        // 십의 자리 올리기
+                        minP = Math.ceil(minP / 100) * 100;
+                        maxP = Math.ceil(maxP / 100) * 100;
+                        document.getElementById("newPrice" + i).innerHTML = '최소 ' + minP + '~' + '최대 ' + maxP;
+                    }
+                    document.getElementById("newPrice" + i).innerHTML = '최소 ' + minP + '~' + '최대 ' + maxP;
+                }
+            }
+
+            document.querySelectorAll('img').forEach(img => {
+                img.addEventListener('click', function () {
+                    // 클릭된 이미지의 data-search 속성 값을 읽어와서 검색어로 사용합니다.
+                    const searchKeyword = this.getAttribute('data-search');
+                    // 검색 페이지로 이동합니다.
+                    window.location.href = '/groups/ott?page=0' + "&keyword=" + searchKeyword;
+                });
+            });
+        </script>
+    </section>
+</div>
+
+<!-- 하단 script 작성 위치 -->
+<!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#lowerScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+<script id="lowerScript">
+
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

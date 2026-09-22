@@ -1,0 +1,56 @@
+<div id="chatroom-users-top">
+    <p id="chatroom-users-title">후기 작성</p>
+    <button id="chatroom-users-close">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+</div>
+
+<div id="chatroom-users-list">
+
+    <!-- 다른 사람 정보 >.ㅇ -->
+    <!--    <th:block th:each="user : ${dealUsers}">-->
+    <!--        <div th:if="${user.userId != product.userId}" class="chatroom-users-item">-->
+    <!--            <div class="item-profile">-->
+    <!--                <img th:if="${user.userFileLink != null}" th:src="${user.userFileLink}">-->
+    <!--            </div>-->
+    <!--            <p class="item-nickname">-->
+    <!--                <span th:text="${user.nickname}"></span>-->
+    <!--            </p>-->
+    <!--            <button class="item-check" th:value="${user.userId}">-->
+    <!--                <i th:if="${user.checked}" class="fa-solid fa-check"></i>-->
+    <!--            </button>-->
+    <!--        </div>-->
+    <!--    </th:block>-->
+
+    <!-- 다른 사람 정보 >.ㅇ -->
+    <div class="chatroom-users-item" th:each="user : ${dealUsers}"
+         th:classappend="${user.isWritten} ? 'op-50'">
+        <div class="item-profile">
+            <img th:if="${user.userFileLink != null}" th:src="${user.userFileLink}">
+        </div>
+        <p class="item-nickname">
+            <span th:text="${user.nickname}"></span>
+        </p>
+        <a th:if="${!user.isWritten}"
+           th:href="@{/review(pdId=${pdId}, userId=${user.userId})}"
+           class="chatroom-users-rvw">
+            <i class="fa-solid fa-pencil"></i>
+        </a>
+    </div>
+
+</div>
+
+<div id="chatroom-users-bottom">
+
+</div>
+
+<!-- 버튼  처리 시작 -->
+<script defer>
+    $(document).ready(function () {
+        // 창 닫기
+        $('#chatroom-users-review').on('click', '#chatroom-users-close', function (event) {
+            $('#chatroom-users-review').addClass('hide');
+        });
+    });
+</script>
+<!-- 버튼 처리 끝 -->

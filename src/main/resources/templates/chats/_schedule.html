@@ -1,0 +1,77 @@
+<div id="schedule-view">
+
+    <p class="schedule-form-title">등록된 일정</p>
+
+    <!-- 아 스케줄 띄우는 폼이에용 -->
+    <div class="schedule-items">
+        <div class="schedule-item">
+            <span class="schedule-key">날짜</span>
+            <span class="schedule-val" th:text="${schedule.date}">11/11/11</span>
+        </div>
+        <div class="schedule-item">
+            <span class="schedule-key">시간</span>
+            <span class="schedule-val" th:text="${schedule.time}">10:00</span>
+        </div>
+        <div class="schedule-item">
+            <span class="schedule-key">장소</span>
+            <div class="schedule-val">
+                <span th:text="${schedule.detailAddr}">도서관 앞</span>
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${schedule.userId == userId}" class="modal-buttons">
+        <button type="button" id="schedule-update" class="modal-btn">일정 변경</button>
+        <button type="button" id="schedule-cancel" class="modal-btn">약속 취소</button>
+    </div>
+</div>
+
+<script>
+    var latitude = [[${schedule.latitude}]];
+    var longitude = [[${schedule.longitude}]];
+    var pdId = [[${schedule.pdId}]];
+
+    var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+        mapOption = {
+            center: new kakao.maps.LatLng(latitude, longitude), // 지도의 중심좌표
+            level: 3 // 지도의 확대 레벨
+        };
+
+    var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+
+    // 마커가 표시될 위치입니다
+    var markerPosition = new kakao.maps.LatLng(latitude, longitude);
+
+    // 마커를 생성합니다
+    var marker = new kakao.maps.Marker({
+        position: markerPosition
+    });
+
+    // 마커가 지도 위에 표시되도록 설정합니다
+    marker.setMap(map);
+
+    /* 일정 변경 view */
+    $('#schedule-update').on('click', function (event) {
+        $.get(`/deal/schedule/save/${pdId}`, function (data) {
+            $('#chatroom-modal').html(data);
+        });
+        $('#chatroom-modal').removeClass('hide');
+    });
+
+    /* 일정 삭제 */
+    $('#schedule-cancel').on('click', function (event) {
+        $.get(`/deal/schedule/remove/${pdId}`, function (data) {
+            $('#chat-right').html(data);
+        });
+    });
+
+    $('#modal-close').on('click', function (event) {
+        $('#chatroom-modal').addClass('hide');
+    });
+    $('#chatroom-modal').on('click', function (event) {
+        if ($(event.target).is('#chatroom-modal')) {
+            $(this).addClass('hide');
+        }
+    });
+</script>

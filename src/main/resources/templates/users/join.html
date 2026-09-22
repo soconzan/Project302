@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout::layout(~{::title}, ~{::#content}, ~{::#upperScript}, ~{::#lowerScript})}">
+<head>
+    <!-- title 작성 위치 -->
+    <title></title>
+    <!-- 상단 script 작성 위치 -->
+    <!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#upperScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+    <script id="upperScript">
+
+    </script>
+</head>
+<body>
+
+<!-- #content 내부에 필요한 html 작성 -->
+<div id="content">
+    <section class="join contatiner">
+        <div class="join-container">
+            <p class="join-title">회원가입</p>
+            <form th:action="@{/users/join}" method="post" onsubmit="return check()"
+                  id="joinForm"
+                  class="join-form">
+
+                <div class="join-input-box">
+                    <div class="join-label">
+                        <label for="localId">회원아이디</label>
+                        <span id="idCkeckMessage"></span>
+                    </div>
+                    <div class="join-input">
+                        <input type="text" name="localId" id="localId" placeholder="4자 이상 입력해주세요." required>
+                        <button type="button" onclick="checkUserId()">중복 확인</button>
+                    </div>
+                </div>
+
+                <div class="join-input-box">
+                    <div class="join-label">
+                        <label for="password">비밀번호</label>
+                        <span id="pwdCkMessage"></span>
+                    </div>
+                    <input type="password" name="password" id="password" placeholder="8자 - 32자 (최대한 길게)" required>
+                </div>
+
+                <div class="join-input-box">
+                    <label for="pwdCk">비밀번호 확인</label>
+                    <input type="password" name="pwdCk" id="pwdCk" onkeyup="passwordCheck()" required>
+                </div>
+
+                <div class="join-input-box">
+                    <div class="join-label">
+                        <label for="nickname">닉네임</label>
+                        <span id="nicknameCheckMessage"></span>
+                    </div>
+                    <div class="join-input">
+                        <input type="text" name="nickname" id="nickname" required>
+                        <button type="button" onclick="checkNickname()">중복 확인</button>
+                        <input type="hidden" id="fullBirthDate" name="birth">
+                    </div>
+                </div>
+
+                <div class="join-input-box">
+                    <label for="email">이메일</label>
+                    <div class="join-input email">
+                        <input type="hidden" id="fullEmail" name="email">
+                        <input type="text" name="emailId" id="email"  required>@
+                        <input class="box" id="domain-txt" type="text" required>
+                        <select class="box" id="domain-list">
+                            <option value="type">직접 입력</option>
+                            <option value="naver.com">naver.com</option>
+                            <option value="google.com">google.com</option>
+                            <option value="hanmail.net">hanmail.net</option>
+                            <option value="nate.com">nate.com</option>
+                            <option value="kakao.com">kakao.com</option>
+                        </select>
+
+                    </div>
+                </div>
+
+                <div class="join-input-box">
+                    <div class="join-label">
+                        <label for="emailAuthInput">이메일 인증</label>
+                        <span id="emailMessage"></span>
+                    </div>
+                    <div class="join-input">
+                        <input type="text" name="emailAuthInput" id="emailAuthInput" required>
+                        <button type="button" onclick="emailSend()">인증번호 보내기</button>
+                        <button type="button" onclick="emailAuth()">확인</button>
+                    </div>
+                </div>
+
+                <div class="join-input-box phone">
+                    <label>휴대전화</label>
+                    <div class="join-input phone">
+                        <input type="text" name="cel1" maxlength="3" oninput="validateNumber(this)" required>
+                        <span>-</span>
+                        <input type="text" name="cel2_1" maxlength="4" oninput="validateNumber(this)" title="전화번호" required>
+                        <span>-</span>
+                        <input type="text" name="cel2_2" maxlength="4" oninput="validateNumber(this)" required>
+                        <input type="hidden" id="fullPhoneNumber" name="phoneNo">
+                    </div>
+                </div>
+
+                <div class="join-input-box">
+                    <label>생년월일</label>
+                    <div class="join-input birth">
+                        <select class="box" id="birth-year" name="birth-year">
+                            <option disabled selected>출생 연도</option>
+                        </select>
+                        <select class="box" id="birth-month" name="birth-month">
+                            <option disabled selected>월</option>
+                        </select>
+                        <select class="box" id="birth-day" name="birth-day">
+                            <option disabled selected>일</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="join-gender">
+                    <input type="radio" name="gender" value="M">
+                    <label>남성</label>
+                    <input type="radio" name="gender" value="F">
+                    <label>여성</label>
+                </div>
+ <button type="button" id="join-submit"  onclick="joinCheck()"> 회원가입</button>
+            
+
+            </form>
+        </div>
+    </section>
+</div>
+
+<!-- 하단 script 작성 위치 -->
+<!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#lowerScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+<script src="/js/join.js" id="lowerScript">
+
+</script>
+</body>
+</html>

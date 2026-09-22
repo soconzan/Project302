@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<table>
+  <thead>
+  <tr>
+    <th>사진</th>
+    <th>판매상태</th>
+    <th>상품명</th>
+    <th>가격</th>
+    <th>찜</th>
+    <th>최근끌어올린날짜</th>
+    <th>기능</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="group : ${groups}">
+    <td>
+      <a th:href="@{|/groups/${group.pdId}|}">
+        <img th:if="${group.fileId}!=null" th:src="${group.fileId}" alt="">
+      </a>
+    </td>
+    <td>
+      <div>
+        <select class="product-dealStatus-select" th:data-product-id="${group.pdId}">
+          <option th:value="SELL" th:selected="${group.dealStatus.toString() == 'SELL'}">판매중</option>
+          <option th:value="HIDE" th:selected="${group.dealStatus.toString() == 'HIDE'}">숨김</option>
+          <option th:value="CANC" th:selected="${group.dealStatus.toString() == 'CANC'}">거래취소</option>
+        </select>
+
+      </div>
+    </td>
+    <td>
+      <a th:text="${group.getPdName()}" th:href="@{|/groups/${group.pdId}|}"></a>
+    </td>
+    <td th:text="${group.pdPrice} + '원'"></td>
+    <td th:text="${group.likeCount}"></td>
+    <td th:text="${group.pullUpDate}"></td>
+    <td>
+      <button th:data-pullUp-id="${group.pdId}" th:data-pullUp-cnt="${group.pullUpCnt}"
+              class="product-pullUp-btn" type="button"
+              th:disabled="${group.pullUpCnt != null ? group.pullUpCnt >= 3 : false}">끌어올리기
+      </button>
+
+      <button>
+        <a th:href="@{|/groups/updateForm/${group.pdId}}">수정</a></button>
+      <button th:data-pd-id="${group.pdId}" class="product-delete-btn" type="button">삭제</button>
+    </td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>

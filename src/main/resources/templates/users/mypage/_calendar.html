@@ -1,0 +1,369 @@
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org"-->
+<!--      th:replace="~{layout::layout(~{::title}, ~{::#content}, ~{::#upperScript}, ~{::#lowerScript})}">-->
+<!--<head>-->
+<!--    &lt;!&ndash; title 작성 위치 &ndash;&gt;-->
+<!--    <title>My Page - Schedule Management</title>-->
+<!--    &lt;!&ndash; 상단 script 작성 위치 &ndash;&gt;-->
+<!--    &lt;!&ndash; 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#upperScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ &ndash;&gt;-->
+
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.13/index.global.min.js'>
+</script>
+<style>
+    /* 모달 스타일 */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0,0,0);
+        background-color: rgba(0,0,0,0.4);
+        padding-top: 60px;
+    }
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+    }
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
+<!--</head>-->
+<!--<body>-->
+
+<!-- #content 내부에 필요한 html 작성 -->
+<!--<div id="content">-->
+<!--    <h1>마이페이지에용</h1>-->
+<div id='calendar'></div>
+<button id="saveButton" class="calendar-save-btn">저장</button>
+
+<!--    저장 모달  -->
+<div id="confirmationModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeConfirmationModal">&times;</span>
+        <div>변경된 내용을 저장하시겠습니까?</div>
+        <button id="confirmButton">확인</button>
+        <button id="cancelButton">취소</button>
+    </div>
+</div>
+
+
+<!-- 이벤트 세부 정보 모달 -->
+<div id="eventDetailsModal" class="modal" th:include="~{users/mypage/_calendar_modal}">
+
+</div>
+<!--</div>-->
+
+<!-- 하단 script 작성 위치 -->
+<!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#lowerScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+
+<script>
+    // 변경 사항을 감지하는 변수
+    var hasChanges = false;
+    var initialStartDate
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        $.ajax({
+            url: '/calendar/subscribeDate',
+            method: 'GET',
+            success: function(response) {
+                initialStartDate = new Date(response); // 가져온 날짜를 JavaScript Date 객체로 변환
+            },
+            error: function() {
+                alert('회원 가입한 달의 시작일을 가져오는 데 실패했습니다.');
+            }
+        });
+
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            // locale: 'ko', //달력 호환 언어설정
+            // initialDate: initialStartDate, // 초기 날짜 설정
+            editable: false,
+            dayMaxEvents: true,
+            customButtons: {
+                customNext: {
+                    text: '>',
+                    click: function() {
+                        if (hasChanges) {
+                            $('#confirmationModal').show();
+                            // 모달에서 확인을 받으면 다음 달로 이동하는 로직
+                            $('#confirmSaveChanges').one('click', function() {
+                                $('#confirmationModal').hide();
+                                calendar.next(); // 다음 달로 이동
+                                hasChanges = false; // 변경 사항 초기화
+                            });
+                            $('#cancelSaveChanges').one('click', function() {
+                                $('#confirmationModal').hide();
+                            });
+                        } else {
+                            calendar.next(); // 변경 사항이 없으면 바로 다음 달로 이동
+                        }
+                    }
+                },
+                customPrev: {
+                    text: '<',
+                    click: function() {
+                        if (hasChanges) {
+                            $('#confirmationModal').show();
+                            // 모달에서 확인을 받으면 이전 달로 이동하는 로직
+                            $('#confirmSaveChanges').one('click', function() {
+                                $('#confirmationModal').hide();
+                                calendar.prev(); // 이전 달로 이동
+                                hasChanges = false; // 변경 사항 초기화
+                            });
+                            $('#cancelSaveChanges').one('click', function() {
+                                $('#confirmationModal').hide();
+                            });
+                        }else if (initialStartDate && calendar.currentData.dateProfile.currentRange.start <= initialStartDate) {
+                            // 회원 가입한 날짜 이전으로의 이동을 막음
+                            alert('회원 가입한 날짜 이전으로 이동할 수 없습니다.');
+                        } else {
+                            calendar.prev(); // 변경 사항이 없으면 바로 이전 달로 이동
+                        }
+                    }
+                }
+            },
+            headerToolbar: {
+                left: 'title',
+                right: 'today customPrev,customNext' // 커스텀 버튼 추가
+            },
+
+            events: '/events' ,// 서버에서 일정 데이터를 가져오는 엔드포인트
+            eventChange: function() {
+                hasChanges = true; // 이벤트 변경 시 hasChanges를 true로 설정
+            },
+            eventDragStop: function() {
+                hasChanges = true; // 이벤트 드래그 앤 드롭 시 hasChanges를 true로 설정
+            },
+            eventResizeStop: function() {
+                hasChanges = true; // 이벤트 리사이즈 시 hasChanges를 true로 설정
+            },
+            eventDrop: function(info) {
+                if (info.event.start < new Date()) {
+                    // 현재 시간 이전으로의 이동을 허용하지 않음
+                    alert('현재 시간 이전으로는 이벤트를 이동할 수 없습니다.');
+                    info.revert(); // 이벤트를 이동하기 전의 위치로 되돌림
+                } else {
+                    // 이벤트가 드래그되면 호출됩니다.
+                    // console.log('이벤트가 이동되었습니다.');
+                    // console.log('이전 시작 날짜:', info.oldEvent.start);
+                    // console.log('새로운 시작 날짜:', info.event.start);
+                    // console.log('이벤트 ID:', info.event.id);
+                    // 이벤트 이동에 대한 추가 작업 수행 가능
+                    info.event.setExtendedProp('isChanged', true);
+                    hasChanges = true;
+                }
+            },
+            eventTimeFormat: { // like '14:30:00'
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                // meridiem: false
+            },
+            dayCellDidMount: function(info) {
+                var date = new Date(info.date);
+                var day = date.getDay();
+                if (day === 6) {
+                    info.el.classList.add('fc-day-sat');
+                } else if (day === 0) {
+                    info.el.classList.add('fc-day-sun');
+                }
+            },
+            dayHeaderDidMount: function(info) {
+                var day = info.date.getDay();
+                if (day === 6) {
+                    info.el.classList.add('fc-day-sat');
+                } else if (day === 0) {
+                    info.el.classList.add('fc-day-sun');
+                }
+            },
+            eventDidMount: function(info) {
+                if (info.event.url) {
+                    info.el.removeAttribute('href');
+                }
+
+            },
+            eventClick: function(info) {
+                var event = info.event;
+                document.getElementById('eventTitle').innerText = event.title;
+                document.getElementById('eventPrice').innerText = event.extendedProps.price || '없음';
+
+                var dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
+                var timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+
+                var eventDate = new Date(event.start);
+                var formattedDate = `${eventDate.getFullYear()}년 ${('0' + (eventDate.getMonth() + 1)).slice(-2)}월 ${('0' + eventDate.getDate()).slice(-2)}일`;
+                var formattedTime = eventDate.toLocaleTimeString('ko-KR', {
+                    hour: 'numeric',
+                    minute: 'numeric'
+                }).replace('AM', '오전').replace('PM', '오후').replace(/(\d+):(\d+)/, function(match, hour, minute) {
+                    return ('0' + hour).slice(-2) + '시 ' + ('0' + minute).slice(-2) + '분';
+                });
+
+                document.getElementById('eventDate').innerText = formattedDate;
+                document.getElementById('eventTime').innerText = formattedTime;
+                document.getElementById('eventLocation').innerText = event.extendedProps.detailAddr || '없음';
+
+                document.getElementById('eventImage').src = event.extendedProps.fileLink;
+
+
+                const la = event.extendedProps.latitude;
+                const lo = event.extendedProps.longitude;
+                console.log(la)
+
+                var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+                    mapOption = {
+                        center: new kakao.maps.LatLng(la, lo), // 지도의 중심좌표
+                        level: 3 // 지도의 확대 레벨
+                    };
+
+                var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+
+
+                // 마커가 표시될 위치입니다
+                var markerPosition  = new kakao.maps.LatLng(la, lo);
+
+                // 마커를 생성합니다
+                var marker = new kakao.maps.Marker({
+                    position: markerPosition
+                });
+
+                // 마커가 지도 위에 표시되도록 설정합니다
+                marker.setMap(map);
+
+
+                // URL 설정
+                var eventUrlElement = document.getElementById('eventUrl');
+                eventUrlElement.href = event.url || '#'; // URL이 없을 경우 '#'로 설정
+
+                // 이벤트 URL 클릭 이벤트 핸들러 추가
+                function eventUrlClickHandler(event) {
+                    event.preventDefault(); // 기본 동작 방지
+                    var url = this.getAttribute('href');
+                    if (url && url !== '#') {
+                        window.open(url, '_blank'); // URL로 이동
+                    }
+                }
+
+
+
+                // 모달이 열릴 때 이벤트 URL 클릭 이벤트 핸들러 추가
+                document.getElementById('eventDetailsModal').style.display = 'block';
+                eventUrlElement.addEventListener('click', eventUrlClickHandler);
+
+
+
+                // 모달 창이 닫힐 때 이벤트 URL 클릭 이벤트 핸들러 제거
+                document.getElementById('closeEventDetailsModal').addEventListener('click', function() {
+                    document.getElementById('eventDetailsModal').style.display = 'none';
+                    eventUrlElement.removeEventListener('click', eventUrlClickHandler);
+                });
+
+                // 모달 창 외부 클릭 시 모달 창 닫기 및 이벤트 URL 클릭 이벤트 핸들러 제거
+                window.onclick = function(event) {
+                    if (event.target == document.getElementById('eventDetailsModal')) {
+                        document.getElementById('eventDetailsModal').style.display = 'none';
+                        eventUrlElement.removeEventListener('click', eventUrlClickHandler);
+                    }
+                };
+
+                map.relayout();
+                map.setCenter(new kakao.maps.LatLng(la, lo));
+
+
+            }
+        });
+
+        calendar.render();
+
+        // 저장 버튼 클릭 시 변경된 이벤트 저장
+        document.getElementById('saveButton').addEventListener('click', function() {
+            if (hasChanges) {
+                $('#confirmationModal').show();
+            } else {
+                alert('변경된 내용이 없습니다.');
+            }
+        });
+
+        $('#confirmButton').click(function() {
+            // 변경된 이벤트만 추출하여 저장
+            var changedEvents = [];
+            calendar.getEvents().forEach(function(event) {
+                if (event.extendedProps.isChanged) {
+                    var formattedStart = moment(event.start).format('YYYY-MM-DD HH:mm:ss');
+                    changedEvents.push({
+                        id: event.id,
+                        start: formattedStart,
+                    });
+                }
+            });
+
+            // 변경된 이벤트 정보를 서버로 전송하는 AJAX 요청
+            $.ajax({
+                type: 'POST', // HTTP 요청 방식
+                url: '/updateEvent', // 서버 엔드포인트 경로
+                contentType: 'application/json', // 요청 본문의 형식
+                data: JSON.stringify(changedEvents), // 변경된 이벤트 정보를 JSON 문자열로 변환하여 전송
+                success: function(response) {
+                    // 성공적으로 서버에 데이터를 전송한 후 실행되는 콜백 함수
+                    console.log('이벤트 변경 내용이 성공적으로 저장되었습니다.');
+                    // window.location.reload();
+                    // 서버에서 반환된 응답을 처리할 수 있음
+                },
+                error: function(xhr, status, error) {
+                    // AJAX 요청이 실패했을 때 실행되는 콜백 함수
+                    console.error('이벤트 변경 내용을 저장하는 중 오류가 발생했습니다:', error);
+                    // 오류 처리 등의 작업 수행 가능
+                }
+            });
+
+
+            document.getElementById('confirmationModal').style.display = 'none';
+            hasChanges = false; // 변경 사항을 처리했으므로 다시 false로 설정
+        });
+
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            document.getElementById('confirmationModal').style.display = 'none';
+        });
+
+        document.getElementById('closeConfirmationModal').addEventListener('click', function() {
+            document.getElementById('confirmationModal').style.display = 'none';
+        });
+
+        document.getElementById('closeEventDetailsModal').addEventListener('click', function() {
+            document.getElementById('eventDetailsModal').style.display = 'none';
+        });
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('confirmationModal')) {
+                document.getElementById('confirmationModal').style.display = 'none';
+            }
+            if (event.target == document.getElementById('eventDetailsModal')) {
+                document.getElementById('eventDetailsModal').style.display = 'none';
+            }
+        };
+
+    });
+
+
+</script>
+<!--</body>-->
+<!--</html>-->

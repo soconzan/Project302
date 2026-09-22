@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout::layout(~{::title}, ~{::#content}, ~{}, ~{})}">
+<head>
+    <!-- title 작성 위치 -->
+    <title th:text="${group.pdName}"></title>
+    <script id="upperScript">
+
+    </script>
+</head>
+<body>
+
+<!-- #content 내부에 필요한 html 작성 -->
+<div id="content">
+    <script src="/js/product.js"></script>
+
+    <section class="one-product container">
+        <div class="one-product-top">
+
+            <div class="one-product-left">
+                <div id="imgContainer">
+                    <div>
+                        <!-- list 형식으로 받아와서 get(0)으로 파일 목록에서 첫번째 파일 id 가져오기-->
+                        <img th:each="file : ${files}" th:if="${file}!=null" th:src="${file}">
+                    </div>
+                    <button class="img-prev"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button class="img-next"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+                <div class="img-count">
+                    <div class="img-count-dot" th:each="file : ${files}"></div>
+                </div>
+            </div>
+
+            <div class="one-product-right">
+                <div class="pd-line">
+                    <p class="pd-stat">공동구매</p>
+                    <span>|</span>
+                    <p th:text="${group.ctgrName}" id="ctgrName"></p>
+                </div>
+                <div class="pd-line-ver">
+                    <p class="pd-name" th:text="${group.pdName}"></p>
+<!--                    <p class="pd-date" th:text="${group.closDate} + '(' + ${group.getDDay()} + ')'"></p>-->
+                    <p class="pd-date" th:text="'마감까지 ' + ${group.getDDay()}"></p>
+                </div>
+                <div class="pd-line-ver">
+                    <p class="pd-group-price" th:if="${group.getChatCount() == 0}"
+                       th:text="${group.pdPrice}"></p>
+                    <p class="pd-group-price" th:unless="${group.getChatCount() == 0}"
+                       th:text="${group.pdPrice} + '원 (현재 참여 시: ' + ${group.pdPrice / (group.getChatCount() + 1)} + '원)'"></p>
+                    <div class="pd-line">
+                        <p class="pd-price">
+                            최소
+                            <span th:text="${group.pdPrice/group.maxPeople}" th:id="minP"></span>
+                            원 ~ 최대
+                            <span th:text="${group.pdPrice/group.minPeople}" th:id="maxP"></span>
+                            원
+                        </p>
+                        <span th:if="${group.roundYn}" th:id="roundYn">(올림 가격)</span>
+                    </div>
+                </div>
+                <div class="pd-hr"></div>
+                <div class="pd-line-end">
+                    <div class="pd-icon">
+                        <i class="fa-regular fa-heart"></i>
+                        ️<span th:text="${group.likeCount}"></span>
+                    </div>
+                    <div class="pd-icon">
+                        <i class="fa-solid fa-eye"></i>
+                        <span th:text="${group.views}"></span>
+                    </div>
+                    <div class="pd-icon">
+                        <i class="fa-regular fa-clock"></i>
+                        <span th:text="${group.pullUpDate}"></span>
+                    </div>
+                </div>
+
+                <div class="pd-btns">
+                    <th:block th:if="${isOwner}">
+                        <button class="pd-delete"><a onclick="deleteOne()">상품 삭제</a></button>
+                        <button><a th:href="@{|/groups/updateForm/${group.pdId}}">상품 수정</a></button>
+<!--                        <button id="manageProduct"><a th:href="@{|/products/manage/${group.userId}|}">상품관리</a></button>-->
+                    </th:block>
+
+                    <th:block th:unless="${isOwner}">
+                        <div th:if="${liked}">
+                            <button id="delLike" onclick="delLike()">찜 취소</button>
+                        </div>
+                        <div th:unless="${liked}">
+                            <button id="addLike" onclick="addLike()">찜하기</button>
+                        </div>
+                        <button id="chat"><a th:href="@{|/chats/join/${group.pdId}|}">
+                            채팅걸기
+                        </a></button>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+        <div class="pd-hr"></div>
+        <div class="one-product-content">
+            <div class="pd-box info">
+                <p class="pd-title">상품 설명</p>
+                <p class="pd-content" th:text="${group.pdContent}"></p>
+            </div>
+            <div class="pd-box ottOption">
+                <p class="pd-title">거래 위치</p>
+                <div class="pd-addr">
+                    <!--지도-->
+                    <div id="map"></div>
+                    <p class="pd-detail-addr" th:text="${group.detailAddr}"></p>
+                </div>
+                <!--hidden-->
+                <p th:text="${user.userId}" th:id="logUser" th:hidden="hidden"></p>
+                <p th:text="${group.pdId}" th:id="pdId" th:hidden="hidden"></p>
+                <p th:text="${group.userId}" th:id="userId" th:hidden="hidden"></p>
+                <p th:text="${group.latitude}" th:id="latitude" th:hidden="hidden"></p>
+                <p th:text="${group.longitude}" th:id="longitude" th:hidden="hidden"></p>
+            </div>
+        </div>
+        <div class="pd-hr"></div>
+        <div class="one-product-user">
+            <p class="pd-title">판매자 정보</p>
+            <span th:text="${group.getNickname()}"></span>
+            <div class="pd-user-info">
+                <p>팔로워</p>
+                <span th:text="${follower}"></span>
+            </div>
+            <div class="pd-user-info">
+                <p>등록한 상품 수</p>
+                <span th:text="${cntProduct}"></span>
+            </div>
+        </div>
+    </section>
+
+    <!--    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=4fde2b37795eb370a877d4b9e6093c5e&libraries=services"></script>-->
+    <script>
+        const la = document.getElementById("latitude").innerText;
+        const lo = document.getElementById("longitude").innerText;
+        var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+            mapOption = {
+                center: new kakao.maps.LatLng(Number(la), Number(lo)), // 지도의 중심좌표
+                level: 3 // 지도의 확대 레벨
+            };
+
+        var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+
+        // 마커가 표시될 위치입니다
+        var markerPosition = new kakao.maps.LatLng(Number(la), Number(lo));
+
+        // 마커를 생성합니다
+        var marker = new kakao.maps.Marker({
+            position: markerPosition
+        });
+
+        // 마커가 지도 위에 표시되도록 설정합니다
+        marker.setMap(map);
+
+        // 아래 코드는 지도 위의 마커를 제거하는 코드입니다
+        // marker.setMap(null);
+
+        // 십의 자리 올리기
+        document.addEventListener("DOMContentLoaded", function () {
+            for (var i = 0; i <= 10; i++) {
+                var minP = document.getElementById("minP").innerText;
+                console.log(minP)
+                var maxP = document.getElementById("maxP").innerText;
+                var roundYn = document.getElementById("roundYn").innerText;
+                if (roundYn === 'true') {
+                    // 형 변환
+                    Number(minP);
+                    Number(maxP);
+                    // 십의 자리 올리기
+                    minP = Math.ceil(minP / 100) * 100;
+                    maxP = Math.ceil(maxP / 100) * 100;
+                    // 바꿔주기
+                    document.getElementById("minP").innerText = minP; // 변경
+                    document.getElementById("maxP").innerText = maxP; // 변경
+                }
+            }
+
+            // var imageContainer = document.querySelector("#imgContainer");
+            // var imageElements = Array.from(imageContainer.querySelectorAll("div"));
+            //
+            // // 이미지 요소를 썸네일 여부에 따라 정렬
+            // imageElements.sort(function (a, b) {
+            //     var thumbnailA = a.querySelector(".thumbnail").innerHTML; // 썸네일 여부를 true 또는 false로 판단
+            //     var thumbnailB = b.querySelector(".thumbnail").innerHTML; // 썸네일 여부를 true 또는 false로 판단
+            //     console.log(thumbnailA + "A")
+            //     console.log(thumbnailB + "B")
+            //
+            //     // true인 요소를 맨 앞으로 이동
+            //     if (thumbnailA === 'true' && thumbnailB !== 'true') {
+            //         return -1; // a가 썸네일이면서 b가 아닌 경우 a를 먼저 배치
+            //     } else if (thumbnailA !== 'true' && thumbnailB === 'true') {
+            //         return 1; // b가 썸네일이면서 a가 아닌 경우 b를 먼저 배치
+            //     } else {
+            //         return 0; // 두 요소가 모두 썸네일인 경우 순서 변경 없음
+            //     }
+            // });
+            //
+            //
+            // // 정렬된 이미지 요소를 콘테이너에 다시 추가
+            // imageElements.forEach(function (element) {
+            //     console.log(element)
+            //     imageContainer.appendChild(element);
+            // });
+        });
+    </script>
+    <script>
+
+        function deleteOne() {
+            var prodId = document.getElementById('pdId').innerText
+            if (confirm("정말 삭제하시겠습니까?")) {
+                // POST 요청을 보내기 위해 객체 생성
+                var xhr = new XMLHttpRequest();
+                // url 생성
+                var url = '/groups/delete/' + prodId;
+
+                // POST 요청 설정
+                xhr.open('POST', url, true);
+
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+                xhr.onload = function () {
+                    if (xhr.status == 200) {
+                        window.location.href = '/groups';
+                    } else {
+                        console.log("삭제하지 못했습니다.")
+                    }
+                };
+                // 요청 보내기
+                xhr.send();
+            }
+            ;
+        }
+
+        /* ------ 찜하기 버튼 클릭 이벤트 ------ */
+        const userId = document.getElementById("userId").innerText;
+        const pdId = document.getElementById("pdId").innerText;
+        const logUser = document.getElementById("logUser").innerText;
+
+        function addLike() {
+            console.log("pdId: " + pdId);
+            console.log("logUser: " + logUser);
+            fetch('/likes/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: logUser,    // 로그인 사용자
+                    likePd: pdId // 상품
+                })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // 성공적으로 찜하기가 완료되었을 때의 처리
+                        console.log('찜하기 성공!');
+                        const addLikeButton = document.getElementById("addLike");
+                        addLikeButton.innerText = "찜 취소";
+                        addLikeButton.setAttribute("onclick", "delLike()"); // 클릭 이벤트 변경
+                        window.location.reload();
+                    } else {
+                        // 찜하기에 실패했을 때의 처리
+                        console.error('찜하기 실패!');
+                    }
+                })
+                .catch(error => {
+                    console.error('오류 발생:', error);
+                });
+        }
+
+        /* ------ 찜취소 버튼 클릭 이벤트 ------ */
+        function delLike() {
+            console.log("pdId: " + pdId);
+            console.log("logUser: " + logUser);
+            fetch('/likes/del', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: logUser, // 로그인 사용자
+                    likePd: pdId    // 상품
+                })
+            })
+                .then(response => {
+                    alert(response);
+                    if (response.ok) {
+                        // 성공적으로 찜 삭제가 완료되었을 때의 처리
+                        console.log('찜 삭제 성공!')
+                        const delLikeButton = document.getElementById("delLike");
+                        delLikeButton.innerText = "찜하기";
+                        delLikeButton.setAttribute("onclick", "addLike()"); // 클릭 이벤트 변경
+                        window.location.reload();
+                    } else {
+                        // 찜 삭제에 실패했을 때의 처리
+                        console.error('찜 삭제 실패!');
+                    }
+                })
+                .catch(error => {
+                    console.error('오류 발생:', error);
+                });
+        }
+
+        //     ottOption 숨기기
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctgrName = document.getElementById("ctgrName").innerText;
+            console.log(ctgrName)
+            if (ctgrName === "OTT") {
+                $('.ottOption').addClass('hide');
+            }
+        })
+
+
+    </script>
+</div>
+
+<!-- 하단 script 작성 위치 -->
+<!-- 쓸일 없으면 삭제해도 됨, 삭제하면 line 3 : ~{::#lowerScript} -> ~{}로 수정, ☆★replace 순서 중요☆★ -->
+<script id="lowerScript">
+
+</script>
+</body>
+</html>

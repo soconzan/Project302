@@ -1,0 +1,4 @@
+<!-- 데헷 -->
+<div class="profile-no-review" th:if="${simpleReview.score == null}" th:include="users/profile/_noreview"></div>
+<div class="profile-simple-review" th:if="${simpleReview.score != null}" th:include="users/profile/_simpleReview"></div>
+<div class="profile-detail-review" th:include="users/profile/_detailReviews"></div>

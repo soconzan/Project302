@@ -1,0 +1,294 @@
+<!-- Socket Start -->
+<script xmlns:th="http://www.w3.org/1999/html">
+
+    var userId = [[${user.userId}]];
+    var chatId = [[${chatId}]];
+    console.log("chatId : " + chatId);
+
+    $(document).ready(function () {
+        $("#send").click(function () {
+            sendMessage();
+        });
+
+        $('#send-message').on('keydown', function (event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+
+    });
+
+
+    // html에서 입력값, chatId를 controller로 전달
+    function sendMessage() {
+        var content = $("#send-message").val();
+        var files = $("#send-files")[0].files;
+
+        console.log(content);
+        console.log(files);
+
+        // 파일 있으면 서버로 전송
+        if (files.length > 0) {
+            var formData = new FormData();
+            for (var i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+
+            fetch('/chats/' + chatId + '/file', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json()) // 서버에서 반환한 JSON을 읽음
+                .then(data => {
+                    stompClient.send("/send/file/" + chatId, {}, JSON.stringify(data));
+                    $("#image-preview").addClass('hide');
+                    $("#send-files").val('');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // 메시지 있으면 전송
+        if (content !== "") {
+            var message = {
+                'content': content,
+                'userId': userId,
+                'chatId': chatId
+            };
+            stompClient.send("/send/" + chatId, {}, JSON.stringify(message));
+            $("#send-message").val('');
+        }
+    }
+
+    // 전송한 파일 불러오기
+    function showMessages(messages) {
+
+        // 현재 접속중인 채팅방이라면
+        if (messages[0].chatId === chatId) {
+            messages.forEach(function (message) {
+                var html = '';
+                var createDate = new Date(message.creatDate);
+                var formattedTime = ('0' + createDate.getHours()).slice(-2) + ':' + ('0' + createDate.getMinutes()).slice(-2);
+
+                if (message.userId == null) {
+                    html = '<div class="msg-notice">' + message.content + '</div>';
+                } else if (message.userId == userId) {
+                    html += '<div class="outbox">' +
+                        '<div class="outbox-msg">';
+                    if (message.content == null) {
+                        html += '<a href="' + message.chatFileLink + '" target="_blank" class="msg-file">' +
+                            '<img src="' + message.chatFileLink + '">' +
+                            '</a>';
+                    } else {
+                        html += '<div class="outbox-content">' + message.content + '</div>';
+                    }
+                    html += '<div class="outbox-info">' +
+                        '<p class="msg-read">' + message.readNot + '</p>' +
+                        '<p class="msg-time">' + formattedTime + '</p>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
+                } else {
+                    html += '<div class="inbox">' +
+                        '<div class="msg-profile">' +
+                        '<img src="' + message.userFileLink + '">' +
+                        '</div>' +
+                        '<div class="inbox-msg-list">' +
+                        '<p class="msg-nickname">' + message.nickname + '</p>' +
+                        '<div class="inbox-msg">';
+                    if (message.content == null) {
+                        html += '<a href="' + message.chatFileLink + '" target="_blank" class="msg-file">' +
+                            '<img src="' + message.chatFileLink + '">' +
+                            '</a>';
+                    } else {
+                        html += '<div class="inbox-content">' + message.content + '</div>';
+                    }
+                    html += '<div class="inbox-info">' +
+                        // '<p class="msg-read">' + message.readNot + '</p>' +
+                        '<p class="msg-time">' + formattedTime + '</p>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
+                }
+                $("#chatroom-messages").prepend(html);
+            });
+        }
+    }
+
+    function reloadChatList() {
+        // 채팅 리스트 업데이트
+        var url = "/chats/list";
+        $.get(url, function (data) {
+            $('.chat-list').html(data);
+        });
+    }
+
+</script>
+<!-- Socket End -->
+
+<!-- 버튼  처리 시작 -->
+<script defer>
+    $(document).ready(function () {
+        $('.chatroom-header').on('click', '.chatroom-user-more', function (event) {
+            console.log("클릭");
+            $('#chatroom-users').removeClass('hide');
+        });
+    });
+</script>
+
+</script>
+<!-- 버튼 처리 끝 -->
+
+<div class="chat-room">
+    <div class="chatroom-header">
+        <!-- 진행중인 거래 나갔을 때 뭐.. 처리 해야 함.. 뷁.. -->
+        <!-- 창 닫기, 프사, 닉네임, 최근 접속 시간, 더보기 버튼 -->
+        <div class="chatroom-user">
+            <div class="chatroom-back-btn"><i class="fa-solid fa-angle-left"></i></div>
+            <div class="chatroom-user-info">
+                <div class="chatroom-user-nickname"
+                     th:text="${partUsers.size() == 1 ? partUsers[0].nickname : partUsers[0].nickname + ' 외 ' + partUsers.size() + '명'}"></div>
+                <!--                <div class="chatroom-user-time">최근 접속 1분 전</div>-->
+            </div>
+            <div class="chatroom-user-more"><i class="fa-solid fa-ellipsis"></i></div>
+        </div>
+
+        <!-- :: Product Info -->
+        <div id="chatroom-product" th:include="chats/_product"></div>
+    </div>
+
+    <div id="chatroom-messages">
+
+        <th:block th:each="msg : ${msgs}">
+
+            <!-- notice -->
+            <th:block th:if="${msg.userId == null}">
+                <div class="msg-notice" th:text="${msg.content}"></div>
+            </th:block>
+
+            <th:block th:unless="${msg.userId == null}">
+                <!-- outbox -->
+                <th:block th:if="${msg.userId}==${user.userId}">
+                    <div class="outbox">
+                        <div class="outbox-msg">
+                            <a th:if="${msg.content == null}" th:href="${msg.chatFileLink}" target="_blank"
+                               class="msg-file">
+                                <img th:if="${msg.chatFileLink}!=null" th:src="${msg.chatFileLink}">
+                                <!--                            <img th:if="${msg.chatFileId}!=null" th:src="@{|/uploads/${msg.chatFileId}|}">-->
+                            </a>
+                            <div th:unless="${msg.content == null}" class="outbox-content"
+                                 th:text="${msg.content}"></div>
+                            <div class="outbox-info">
+<!--                                <p class="msg-read" th:text="${msg.readNot}">1</p>-->
+                                <p class="msg-time" th:text="${#temporals.format(msg.creatDate, 'HH:mm')}"></p>
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+
+                <!-- inbox -->
+                <th:block th:unless="${msg.userId}==${user.userId}">
+                    <div class="inbox">
+                        <div class="msg-profile">
+                            <img th:if="${msg.userFileLink}!=null" th:src="${msg.userFileLink}">
+                        </div>
+                        <div class="inbox-msg-list">
+                            <p class="msg-nickname" th:text="${msg.nickname}"></p>
+                            <div class="inbox-msg">
+
+                                <a th:if="${msg.content == null}" th:href="${msg.chatFileLink}" target="_blank"
+                                   class="msg-file">
+                                    <img th:if="${msg.chatFileLink}!=null" th:src="${msg.chatFileLink}">
+                                </a>
+                                <div th:unless="${msg.content == null}" class="inbox-content"
+                                     th:text="${msg.content}"></div>
+
+                                <div class="inbox-info">
+                                    <p class="msg-read" th:text="${msg.readNot}">1</p>
+                                    <p class="msg-time" th:text="${#temporals.format(msg.creatDate, 'HH:mm')}"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+
+            </th:block>
+
+        </th:block>
+    </div>
+
+    <div class="chatroom-send-input">
+        <!-- input, 사진, 전송 버튼 -->
+        <textarea id="send-message" rows="3" placeholder="메시지를 입력하세요"></textarea>
+        <label class="send-files-label" for="send-files"><i class="fa-regular fa-image"></i></label>
+        <input type="file" id="send-files" multiple name="imgList[]" accept="image/*"/>
+        <label class="send-btn-label" for="send"><i class="fa-solid fa-paper-plane"></i></label>
+        <button type="button" id="send">전송</button>
+
+        <!-- 사진 미리보기 -->
+        <div id="image-preview" class="hide"></div>
+    </div>
+</div>
+
+<!-- :: Part Users -->
+<div id="chatroom-users" class="hide" th:include="chats/_users"></div>
+
+<!-- :: Users Check -->
+<div id="chatroom-users-check" class="hide"></div>
+
+<!-- :: Users Review Check -->
+<div id="chatroom-users-review" class="hide"></div>
+
+<script>
+    {
+        // 전송할 이미지 미리보기
+        const fileInput = document.getElementById('send-files');
+        const imagePreview = document.getElementById('image-preview');
+
+        fileInput.addEventListener('change', function () {
+            imagePreview.classList.remove('hide');
+            const files = this.files;
+            imagePreview.innerHTML = '';
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const imgElement = document.createElement('img');
+                    imgElement.classList.add('preview-image');
+                    imgElement.src = event.target.result;
+                    imagePreview.appendChild(imgElement);
+
+                    const deleteButton = document.createElement('div');
+                    deleteButton.classList.add('image-delete');
+                    deleteButton.innerHTML = '<i class="fa-solid fa-square-xmark"></i>';
+
+                    deleteButton.addEventListener('click', function () {
+                        // 이미지 미리 보기에서 이미지 삭제
+                        imagePreview.removeChild(container);
+
+                        // 파일 입력 필드에서 해당 파일 제거
+                        const updatedFiles = Array.from(fileInput.files).filter(f => f !== file);
+                        const newFileList = new DataTransfer();
+                        updatedFiles.forEach(file => newFileList.items.add(file));
+                        fileInput.files = newFileList.files;
+
+                        if (fileInput.files.length === 0) {
+                            imagePreview.classList.add('hide');
+                        }
+                    });
+
+                    const container = document.createElement('div');
+                    container.classList.add('image-preview-file');
+                    container.appendChild(imgElement);
+                    container.appendChild(deleteButton);
+                    imagePreview.appendChild(container);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+</script>
