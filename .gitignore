@@ -1,0 +1,64 @@
+# =========================
+# Gradle
+# =========================
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# =========================
+# IntelliJ IDEA
+# =========================
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# =========================
+# Eclipse
+# =========================
+.classpath
+.project
+.settings/
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+# Spring Boot local configuration
+application-local.yml
+application-local.yaml
+application-local.properties
+
+# Secret / private configuration
+application-secret.yml
+application-secret.yaml
+application-secret.properties
+
+# =========================
+# Generated / Temporary
+# =========================
+*.tmp
+*.temp
+*.swp
+*.swo
